@@ -1,0 +1,17 @@
+#!/bin/sh
+# Runs before every push. Production (main) and staging only change through pull requests.
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/staging)
+      if [ "$ALLOW_PROTECTED_PUSH" != "1" ]; then
+        echo "Do not push straight to ${remote_ref#refs/heads/}. Push your branch and open a pull request."
+        echo "(To push anyway: ALLOW_PROTECTED_PUSH=1 git push ...)"
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+echo "pre-push: production build"
+npm run --silent build

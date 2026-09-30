@@ -10,9 +10,10 @@ npm test           # unit tests (Vitest)
 npm run lint       # ESLint
 npm run typecheck  # tsc --noEmit
 npm run build      # production build
+npm run check      # all of the above, in order
 ```
 
-Run `npm test`, `npm run lint`, and `npm run typecheck` before every commit.
+The git hooks run these for you (see `docs/workflow.md`).
 
 ## Folder map
 
@@ -41,7 +42,10 @@ src/
   lib/tokens.ts            readToken(): read a design token from code (canvas drawing)
   styles/fonts/            Geist Pixel, Geist, Sentient (with licenses)
 public/lessons/lesson-XX/  images for each lesson
-docs/                      how-tos (adding a lesson, storage, design)
+docs/                      how-tos (adding a lesson, storage, design, workflow)
+.github/workflows/         CI checks and the release guard
+.githooks/                 pre-commit, commit-msg, pre-push
+.claude/skills/            start-branch, commit, open-pr, release
 ```
 
 ## Rules
@@ -75,5 +79,11 @@ Read `docs/design.md` before changing the look. The short version:
 
 ## Git
 
-- Push small, clear commits to `main`.
-- Commit messages have no Co-Authored-By or other attribution lines.
+Read `docs/workflow.md`. The short version:
+
+- `main` is production (Vercel). `staging` collects finished work. Nothing is committed or pushed to either directly.
+- Every change starts on a branch cut from `staging`: `feat/`, `fix/`, `docs/`, `refactor/`, `chore/` (skill: `start-branch`).
+- Commit messages: `type(scope): summary`, 72 characters max, no Co-Authored-By or other attribution lines (skill: `commit`).
+- Pull request into `staging`, squash merge (skill: `open-pr`). Release by a pull request from `staging` into `main`, merge commit (skill: `release`).
+- Hooks in `.githooks/` run lint, typecheck, and tests before each commit and the build before each push. GitHub Actions runs all four on every push and pull request.
+- Run `npm run check` before opening a pull request.

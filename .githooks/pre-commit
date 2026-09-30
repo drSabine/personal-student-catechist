@@ -1,0 +1,16 @@
+#!/bin/sh
+# Runs before every commit. Turned on by `npm install` (see "prepare" in package.json).
+# Skip once in an emergency with: git commit --no-verify
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [ "$branch" = "main" ] || [ "$branch" = "staging" ]; then
+  if [ "$ALLOW_PROTECTED_COMMIT" != "1" ]; then
+    echo "You are on '$branch'. Work on a branch instead:"
+    echo "  git switch staging && git pull && git switch -c feat/your-change"
+    echo "(To commit here anyway: ALLOW_PROTECTED_COMMIT=1 git commit ...)"
+    exit 1
+  fi
+fi
+
+echo "pre-commit: lint, typecheck, tests"
+npm run --silent lint && npm run --silent typecheck && npm test --silent
