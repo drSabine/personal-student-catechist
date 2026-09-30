@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useReflections } from "./useReflections";
@@ -37,27 +38,30 @@ export function ReflectionCards({ lessonId, aside }: ReflectionCardsProps) {
     );
   } else {
     body = (
-      <ul className="columns-1 gap-4 sm:columns-2 lg:columns-1 xl:columns-2 2xl:columns-3">
+      <ul className="columns-1 gap-3 sm:columns-2 lg:columns-1 xl:columns-2 2xl:columns-3">
         {entries.map((entry) => (
-          <li key={entry.id} className="mb-4 break-inside-avoid">
-            <figure className="rounded-2xl border border-hairline bg-paper p-6 sm:p-7">
-              <span aria-hidden className="block font-serif text-5xl leading-none text-ink/15">
-                &ldquo;
-              </span>
-              <blockquote className="mt-1 whitespace-pre-line break-words font-serif text-lg leading-relaxed lg:text-xl">
-                {entry.content}
-              </blockquote>
-              <div className="mt-4 flex justify-end">
+          <li key={entry.id} className="mb-3 break-inside-avoid">
+            <figure className="rounded-2xl border border-hairline bg-paper p-4 sm:p-5">
+              {/* Quote mark and remove button share the top row, so the card stays compact. */}
+              <div className="-mr-2 -mt-2 flex items-start justify-between">
+                <span aria-hidden className="pt-2 font-serif text-4xl leading-none text-ink/15">
+                  &ldquo;
+                </span>
                 <button
                   type="button"
                   onClick={() => {
                     if (window.confirm("Remove this reflection?")) void remove(entry.id);
                   }}
-                  className="inline-flex min-h-11 items-center rounded-full px-3 text-xs text-muted hover:bg-wash hover:text-ink"
+                  aria-label="Remove this reflection"
+                  title="Remove"
+                  className="inline-flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-wash hover:text-coral"
                 >
-                  Remove
+                  <Trash2 aria-hidden className="size-4" strokeWidth={1.75} />
                 </button>
               </div>
+              <blockquote className="whitespace-pre-line break-words font-serif text-lg leading-relaxed lg:text-xl">
+                {entry.content}
+              </blockquote>
             </figure>
           </li>
         ))}
