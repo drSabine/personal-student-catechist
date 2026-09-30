@@ -92,9 +92,9 @@ The font files in `src/styles/fonts/` are trimmed to Latin characters to keep th
 
 ## Build Our Wall specifics
 
-- Bricks lie flat or stand up, mixed together, and are never square. There are no full rows, so finishing one area (the top, or one side) never uncovers a whole band of the picture. Pupils can only guess once most bricks are in.
+- The wall mixes three shapes: squares, bricks lying flat, and bricks standing up, in different sizes. The biggest piece is at least twice the smallest, but no piece covers more than two fair shares of the picture, and none is thinner than 3.5 to 1. Finishing one area (the top, or one side) never uncovers a whole band of the picture, so pupils can only guess once most pieces are in.
 - The pattern is fixed per piece count and `layoutSeed`, and looks the same on phones, laptops, and TVs.
-- The brick at the bottom also lies or stands, changing each turn.
+- The brick at the bottom also changes each turn: lying, standing, or square.
 - No gaps between pieces, so the halftone reads as one printed picture.
 - Empty spots are dashed outlines. Filled spots are ink dots on `wash`, about 72 dots across the photo.
 - When the wall is full, the color photo fades in. Then the question appears on one line in a paper band across the bottom of the photo, sized from the wall width, so it is large on a TV and still fits on a phone.

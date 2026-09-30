@@ -12,12 +12,17 @@ interface BrickProps {
   onDrop: (slot: number) => void;
 }
 
-/** Width and height multipliers of the base brick: some lie flat, some stand up, like the wall. */
+/**
+ * Width and height multipliers of the base brick, like the pieces in the wall:
+ * lying, standing, and square, in a few sizes.
+ */
 const SHAPES: readonly (readonly [number, number])[] = [
   [1, 1],
   [0.5, 1.9],
+  [0.55, 1.15],
   [1.2, 0.9],
   [0.55, 1.7],
+  [0.7, 1.45],
   [0.9, 1.1],
 ];
 
