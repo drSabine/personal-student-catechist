@@ -1,70 +1,32 @@
 # Reflections storage
 
-Right now reflections live in memory (`InMemoryReflectionRepository`). They disappear when the page reloads. When you are ready to keep them, write your own repository and swap it in with one line.
+Reflections are saved on the server, so pupils write on their phones, the teacher reads on the laptop, and nothing is lost on reload.
 
-## The pieces
-
-| File | What it is |
-| --- | --- |
-| `src/core/reflection/Reflection.ts` | The `Reflection` model and `cleanReflection()`, which trims and checks input |
-| `src/core/reflection/ReflectionRepository.ts` | The interface every storage must follow |
-| `src/core/reflection/InMemoryReflectionRepository.ts` | The current storage, for reference |
-| `src/core/reflection/repository.ts` | **The one line that picks the storage** |
-| `src/features/reflections/useReflections.ts` | The hook components use. It only talks to the repository |
-
-```ts
-export interface Reflection {
-  readonly id: string;
-  readonly lessonId: string;
-  readonly pupilName: string;
-  readonly content: string;
-  readonly createdAt: Date;
-}
-
-export interface ReflectionRepository {
-  save(input: NewReflection): Promise<Reflection>;
-  listByLesson(lessonId: string): Promise<Reflection[]>; // newest first
-  delete(id: string): Promise<void>;
-}
+```
+useReflections -> HttpReflectionRepository -> /api/reflections -> Upstash Redis
+   (browser)          (browser)                  (server)          (server)
 ```
 
-All methods return promises, so a database or an API fits without changes elsewhere.
+The browser never talks to Redis. Only the API holds the secret.
 
-## Write your own
+- The screens use one `ReflectionRepository`, picked in `src/core/reflection/repository.ts`. Components reach it only through `useReflections`.
+- `src/app/api/reflections/` is the only server code. `store.ts` picks the server's storage.
+- `cleanReflection()` runs in the form and again in the API, so empty or too-long entries are refused with a readable message.
+- The teacher's list refreshes itself, so entries from phones appear without a reload.
+- To use another database, write a class that implements `ReflectionRepository`, return it from `getStore()`, and run it through `reflectionRepositoryContract` in a test.
 
-1. Create a file, for example `src/core/reflection/MyReflectionRepository.ts`:
+## Connect Upstash (once)
 
-   ```ts
-   import { cleanReflection, type NewReflection, type Reflection } from "./Reflection";
-   import type { ReflectionRepository } from "./ReflectionRepository";
+1. In the Vercel project, add the **Upstash for Redis** integration and connect it to Production and Preview.
+2. That sets `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (`KV_REST_API_URL` and `KV_REST_API_TOKEN` also work).
+3. Redeploy.
 
-   export class MyReflectionRepository implements ReflectionRepository {
-     async save(input: NewReflection): Promise<Reflection> {
-       const clean = cleanReflection(input);
-       // Store `clean` and return the saved entry with its id and createdAt.
-     }
+Until then the live site says "Reflections are not set up yet."
 
-     async listByLesson(lessonId: string): Promise<Reflection[]> {
-       // Return this lesson's entries, newest first. createdAt must be a Date.
-     }
+## Local development
 
-     async delete(id: string): Promise<void> {
-       // Remove the entry.
-     }
-   }
-   ```
+Without settings, `npm run dev` keeps reflections in the dev server's memory. With a `.env` holding the variables above (it is never committed), it uses the real Redis, so remove your test entries afterwards.
 
-2. Swap it in, in `src/core/reflection/repository.ts`:
+## Privacy
 
-   ```ts
-   export const reflectionRepository: ReflectionRepository = new MyReflectionRepository();
-   ```
-
-That is the only change. The screens keep working.
-
-## Good to know
-
-- Call `cleanReflection()` in `save`, so empty or too-long entries are refused with a friendly message. The form shows that message to the pupil.
-- If a method throws, the screens show a short error instead of crashing.
-- `InMemoryReflectionRepository.test.ts` shows the expected behavior. Copy it to test your own repository.
-- The pupil's name is saved but not shown on the teacher's cards.
+The API has no login: anyone with the link can read a lesson's reflections and remove one, and pupil names are stored. See `docs/reports/admin-access.md` for ways to lock this down.

@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * Full screen for one part of the page.
- * `active` also works where the browser has no Fullscreen API (iPhone):
- * the component then covers the window by itself.
- */
+/** Full screen for one part of the page. Where there is no Fullscreen API (iPhone), it covers the window. */
 export function useFullscreen() {
   const [active, setActive] = useState(false);
 

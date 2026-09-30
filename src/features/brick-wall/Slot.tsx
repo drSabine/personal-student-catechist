@@ -18,24 +18,13 @@ interface SlotProps {
   filled: boolean;
   /** A brick is being dragged over this slot. */
   targeted: boolean;
-  canPlace: boolean;
   renderer: HalftoneRenderer | null;
-  /** Halftone dots across the whole photo. */
   cells: number;
   onPlace: (slot: number) => void;
 }
 
-/** One spot in the wall: an empty brick outline, or its piece of the photo in halftone. */
-export const Slot = memo(function Slot({
-  piece,
-  box,
-  filled,
-  targeted,
-  canPlace,
-  renderer,
-  cells,
-  onPlace,
-}: SlotProps) {
+/** One spot in the wall: a numbered outline, or its piece of the photo in halftone. */
+export const Slot = memo(function Slot({ piece, box, filled, targeted, renderer, cells, onPlace }: SlotProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -54,7 +43,7 @@ export const Slot = memo(function Slot({
     });
   }, [filled, renderer, piece, box.width, box.height, cells]);
 
-  // Free the canvas memory when this slot is emptied or removed.
+  // Free the canvas memory when the slot is emptied or removed.
   useEffect(() => {
     const canvas = canvasRef.current;
     return () => {
@@ -75,24 +64,22 @@ export const Slot = memo(function Slot({
     );
   }
 
-  // Only the right and bottom edges are drawn; the wall draws its top and left,
-  // so neighbouring outlines never double up.
+  // Only the right and bottom edges are drawn; the wall draws its top and left.
   return (
     <button
       type="button"
       data-slot={piece.index}
       data-empty="true"
-      disabled={!canPlace}
       onClick={() => onPlace(piece.index)}
       aria-label={`Empty spot ${piece.index + 1}. Place the brick here.`}
-      className={`absolute border-b-2 border-r-2 border-dashed transition-colors disabled:cursor-default ${
-        targeted
-          ? "border-gold bg-gold/15"
-          : canPlace
-            ? "cursor-pointer border-ink/25 hover:bg-coral/10 focus-visible:bg-coral/10"
-            : "border-ink/20"
+      className={`absolute flex cursor-pointer items-center justify-center border-b-2 border-r-2 border-dashed transition-colors ${
+        targeted ? "border-gold bg-gold/15" : "border-ink/25 hover:bg-coral/10 focus-visible:bg-coral/10"
       }`}
       style={position}
-    />
+    >
+      <span aria-hidden className="pointer-events-none select-none text-slot font-medium tabular-nums text-ink/35">
+        {piece.index + 1}
+      </span>
+    </button>
   );
 });

@@ -51,10 +51,7 @@ function release(key: string): void {
   if (entry && --entry.users <= 0) entries.delete(key);
 }
 
-/**
- * Loads the photo once, samples it at the size the dots need,
- * and gives back a renderer for its pieces. Memory is released on unmount.
- */
+/** Loads the photo once, samples it at the size the dots need, and returns a renderer. Released on unmount. */
 export function useHalftoneRenderer(src: string, photo: Size, cells: number): HalftoneRenderer | null {
   const [loaded, setLoaded] = useState<{ key: string; renderer: HalftoneRenderer } | null>(null);
   const { width, height } = photo;

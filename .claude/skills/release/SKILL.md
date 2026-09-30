@@ -5,47 +5,39 @@ description: Release staging to production by merging staging into main, which V
 
 # Release staging to main
 
-`main` is production. Vercel deploys every change on `main`. Only `staging` is merged into `main`, through a pull request. The "Release guard" check fails any other source branch.
+`main` is production and Vercel deploys every change on it. Only `staging` is merged into `main`, through a pull request. The "Release guard" check fails any other source.
+
+This machine runs Windows PowerShell 5.1 and has no `gh`. Run one command per line and do not use bash's `$(...)`. See `docs/workflow.md`.
 
 ## Steps
 
-1. Check `staging` is healthy:
+1. Check `staging` is healthy, and check its Vercel preview at phone and laptop width:
 
    ```bash
+   git fetch origin --prune
    git switch staging
    git pull --ff-only
    npm run check
    ```
 
-   Also check the Vercel preview of `staging` on a phone width and a laptop width.
-
-2. See what will go out:
+2. See what will go out. If nothing is listed, there is nothing to release: tell the user and stop.
 
    ```bash
-   git fetch origin
    git log --oneline origin/main..origin/staging
    ```
 
-   If nothing is listed, there is nothing to release. Tell the user and stop.
-
-3. Open the release pull request, base `main`, head `staging`. Title it `chore(release): <short summary>`, for example `chore(release): lesson 2`.
-
-   With `gh`:
-
-   ```bash
-   gh pr create --base main --head staging --title "chore(release): lesson 2" --body "$(git log --oneline origin/main..origin/staging)"
-   ```
-
-   Without it, give the user this link:
+3. Give the user this link to open the pull request (base `main`, head `staging`), titled `chore(release): <short summary>`, with the list from step 2 in the description:
 
    ```
    https://github.com/drSabine/personal-student-catechist/compare/main...staging?expand=1
    ```
 
-4. Wait for CI and the Release guard to pass.
+   If the release adds a Vercel integration or environment variables, check they are set for Production before merging, or the live site errors where that feature is used.
 
-5. Merge with **Create a merge commit** (not squash, not rebase). This keeps `main` and `staging` sharing the same history, so the next release has no conflicts.
+4. Wait for CI and the Release guard.
 
-6. Watch the production deployment in Vercel and open the live site once it is ready.
+5. Merge with **Create a merge commit** (not squash, not rebase), so `main` and `staging` share history and the next release has no conflicts.
 
-After the merge, GitHub shows `staging` as one commit behind `main` (the merge commit). That is normal; the next release still merges cleanly. Do not push to `staging` or `main` directly to "fix" it.
+6. Watch the production deployment in Vercel and open the live site.
+
+Afterwards GitHub shows `staging` one commit behind `main`. That is normal. Never push to `staging` or `main` directly to "fix" it.

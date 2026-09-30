@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { LessonSummary } from "@/core/lesson/Lesson";
 import { site } from "@/content/site";
 
@@ -121,11 +121,20 @@ function Brand() {
   );
 }
 
-/** Lesson list: a slim column on laptops and TVs, a top bar with a menu on phones. */
+/** Lesson list: a slim column on laptops and TVs, a top bar with a small menu card on phones. */
 export function Sidebar({ lessons, currentLessonId }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const current = lessons.find((lesson) => lesson.id === currentLessonId);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <>
@@ -134,7 +143,7 @@ export function Sidebar({ lessons, currentLessonId }: SidebarProps) {
         <Nav lessons={lessons} currentLessonId={currentLessonId} pathname={pathname} />
       </aside>
 
-      <header className="flex items-center justify-between gap-4 px-4 pt-3 lg:hidden">
+      <header className="relative z-40 flex items-center justify-between gap-4 px-4 pt-3 lg:hidden">
         <Brand />
         <button
           type="button"
@@ -146,28 +155,31 @@ export function Sidebar({ lessons, currentLessonId }: SidebarProps) {
           {current ? `Lesson ${current.label}` : "Lessons"}
           <span aria-hidden className="pixel text-xs">{open ? "x" : "+"}</span>
         </button>
-      </header>
 
-      {open && (
-        <div id="lesson-menu" className="fixed inset-0 z-40 overflow-y-auto bg-paper px-4 pb-10 pt-3 lg:hidden">
-          <div className="mb-8 flex items-center justify-between">
-            <Brand />
+        {open && (
+          <>
+            {/* A tap anywhere else closes the card. */}
             <button
               type="button"
+              aria-label="Close menu"
+              tabIndex={-1}
               onClick={() => setOpen(false)}
-              className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 text-sm"
+              className="fixed inset-0 -z-10 cursor-default"
+            />
+            <div
+              id="lesson-menu"
+              className="absolute right-4 top-full mt-2 max-h-96 w-72 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-hairline bg-paper p-4 shadow-float"
             >
-              Close
-            </button>
-          </div>
-          <Nav
-            lessons={lessons}
-            currentLessonId={currentLessonId}
-            pathname={pathname}
-            onNavigate={() => setOpen(false)}
-          />
-        </div>
-      )}
+              <Nav
+                lessons={lessons}
+                currentLessonId={currentLessonId}
+                pathname={pathname}
+                onNavigate={() => setOpen(false)}
+              />
+            </div>
+          </>
+        )}
+      </header>
     </>
   );
 }

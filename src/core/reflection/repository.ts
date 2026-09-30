@@ -1,5 +1,5 @@
-import { InMemoryReflectionRepository } from "./InMemoryReflectionRepository";
+import { HttpReflectionRepository } from "./HttpReflectionRepository";
 import type { ReflectionRepository } from "./ReflectionRepository";
 
-// Swap storage here. This is the only line to change.
-export const reflectionRepository: ReflectionRepository = new InMemoryReflectionRepository();
+// The one line that picks the storage the screens use.
+export const reflectionRepository: ReflectionRepository = new HttpReflectionRepository();

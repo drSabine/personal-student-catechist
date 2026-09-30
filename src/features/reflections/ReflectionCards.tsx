@@ -13,7 +13,7 @@ interface ReflectionCardsProps {
 
 /** The teacher's view: every entry for the lesson as quiet quote cards, newest first. No names shown. */
 export function ReflectionCards({ lessonId, aside }: ReflectionCardsProps) {
-  const { entries, error, remove } = useReflections(lessonId);
+  const { entries, error, remove } = useReflections(lessonId, { list: true });
   const count = entries?.length ?? 0;
 
   let body: ReactNode;
@@ -50,7 +50,8 @@ export function ReflectionCards({ lessonId, aside }: ReflectionCardsProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    if (window.confirm("Remove this reflection?")) void remove(entry.id);
+                    if (!window.confirm("Remove this reflection?")) return;
+                    remove(entry.id).catch(() => window.alert("Could not remove it. Please try again."));
                   }}
                   aria-label="Remove this reflection"
                   title="Remove"

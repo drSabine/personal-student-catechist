@@ -1,10 +1,7 @@
 import { cleanReflection, type NewReflection, type Reflection } from "./Reflection";
 import type { ReflectionRepository } from "./ReflectionRepository";
 
-/**
- * Keeps reflections in memory only.
- * They last while the site stays open and are gone after a page reload.
- */
+/** Memory only. Used by the dev server when Redis is not set up. */
 export class InMemoryReflectionRepository implements ReflectionRepository {
   private readonly entries = new Map<string, Reflection>();
   private counter = 0;
