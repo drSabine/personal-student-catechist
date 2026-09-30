@@ -58,12 +58,18 @@ npm test           # run the tests
 npm run lint       # check the code style
 npm run typecheck  # check the types
 npm run build      # make a production build
+npm run check      # all of the above
 ```
+
+## Working on the site
+
+Work never goes straight to the live site. Make a branch from `staging`, open a pull request into `staging`, and when `staging` looks good, open a pull request from `staging` into `main`. Vercel publishes `main`. The full guide, with commit message rules and the checks that run, is in [docs/workflow.md](docs/workflow.md).
 
 ## More
 
 - [docs/adding-a-lesson.md](docs/adding-a-lesson.md): adding lessons and new kinds of activities
 - [docs/reflections-storage.md](docs/reflections-storage.md): plugging in your own storage
 - [docs/design.md](docs/design.md): colors, fonts, and design rules
+- [docs/workflow.md](docs/workflow.md): branches, commits, checks, and releases
 
 Fonts: Geist and Geist Pixel (SIL Open Font License) and Sentient (ITF Free Font License). The license files are in `src/styles/fonts/`.
