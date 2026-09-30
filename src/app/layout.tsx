@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { site } from "@/content/site";
-import { pixelFont, sansFont, serifFont } from "./fonts";
+import { monoFont, pixelFont, sansFont, serifFont } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${pixelFont.variable} ${sansFont.variable} ${serifFont.variable}`}>
+    <html lang="en" className={`${pixelFont.variable} ${sansFont.variable} ${monoFont.variable} ${serifFont.variable}`}>
       <body>{children}</body>
     </html>
   );

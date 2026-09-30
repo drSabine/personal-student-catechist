@@ -20,6 +20,7 @@
   --font-pixel: var(--nf-pixel), ui-monospace, monospace;
   --font-sans: var(--nf-geist), system-ui, sans-serif;
   --font-serif: var(--nf-sentient), Georgia, serif;
+  --font-mono: var(--nf-geist-mono), ui-monospace, monospace;
 
   /* Type sizes that grow with the screen */
   --text-title: clamp(1.5rem, 2.4vw, 2.25rem);
@@ -28,9 +29,11 @@
   --text-display--line-height: 1.15;
   --text-stat: clamp(2.5rem, 5vw, 4rem);
   --text-stat--line-height: 1;
-  /* Sized from the wall's width (a container), so it stays on one line. */
-  --text-question: max(1.75rem, 9.5cqi);
+  /* Sized from the wall's width (a container), so the question stays on one line. */
+  --text-question: max(1rem, 8cqi);
   --text-question--line-height: 1;
+  --text-slot: max(1rem, 5cqi);
+  --text-slot--line-height: 1;
 
   --tracking-label: 0.14em;
 
@@ -42,12 +45,17 @@
   --spacing-panel: clamp(17rem, 24vw, 24rem);
   /* The free space beside a square wall, so the floating panel never covers it. */
   --spacing-float-panel: clamp(13.5rem, calc((100vw - 100vh) / 2 - 1.5rem), 18rem);
-  --spacing-tray: clamp(5.5rem, 13vh, 9.5rem);
+  /* Fixed, so the wall never jumps. svh ignores the phone's URL bar. */
+  --spacing-tray: clamp(6rem, 14svh, 9rem);
   /* Padding that scales with its own text, for the question band. */
   --spacing-caption: 0.25em;
 
   /* Depth, made from ink so it follows the palette */
-  --inset-shadow-brick: inset 0 -0.3rem 0 color-mix(in srgb, var(--color-ink) 14%, transparent);
+  /* Lit top and left edge, shaded bottom and right edge, soft shadow underneath. */
+  --shadow-brick:
+    inset 0.15rem 0.15rem 0 color-mix(in srgb, var(--color-paper) 45%, transparent),
+    inset -0.2rem -0.3rem 0 color-mix(in srgb, var(--color-ink) 18%, transparent),
+    0 0.4rem 0.6rem -0.3rem color-mix(in srgb, var(--color-ink) 35%, transparent);
   --shadow-float: 0 0.75rem 2rem color-mix(in srgb, var(--color-ink) 8%, transparent);
 
   /* Motion */
@@ -55,6 +63,22 @@
   --animate-settle: settle 420ms var(--ease-soft) both;
   --animate-pop-in: pop-in 360ms var(--ease-soft) both;
   --animate-rise-in: rise-in 900ms var(--ease-soft) both;
+  --animate-nudge: nudge 320ms var(--ease-soft);
+
+  /* A brick shakes when it does not fit. */
+  @keyframes nudge {
+    20%,
+    60% {
+      transform: translateX(-0.4rem);
+    }
+    40%,
+    80% {
+      transform: translateX(0.4rem);
+    }
+    to {
+      transform: none;
+    }
+  }
 
   /* A placed brick settles into its spot. */
   @keyframes settle {
@@ -95,9 +119,6 @@
 
 /* Tokens used from component styles rather than as classes. */
 :root {
-  --brick-width: clamp(5.25rem, 13vh, 8.25rem);
-  --brick-height: clamp(2.5rem, 6.5vh, 4rem);
-
   --duration-quick: 200ms;
   --reveal-delay: 500ms;
   --reveal-duration: 4000ms;
@@ -140,11 +161,6 @@ body {
   font-family: var(--font-pixel);
   font-variation-settings: "ELSH" 0;
   font-weight: 400;
-}
-
-/* Round pixels, like the halftone dots. Used for the big reveal. */
-.pixel-round {
-  font-variation-settings: "ELSH" 20;
 }
 
 @layer base {

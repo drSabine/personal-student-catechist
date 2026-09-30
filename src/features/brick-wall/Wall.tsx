@@ -3,54 +3,40 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import type { HalftoneRenderer } from "@/core/image/HalftoneRenderer";
-import { ImageSlicer } from "@/core/image/ImageSlicer";
+import type { PieceBounds } from "@/core/image/ImageSlicer";
 import type { BrickWallPhoto } from "./BrickWallActivity";
 import { Slot, type SlotBox } from "./Slot";
 
 interface WallProps {
   photo: BrickWallPhoto;
-  pieceCount: number;
+  pieces: readonly PieceBounds[];
   width: number;
   height: number;
-  /** Picks the brick pattern. */
-  layoutSeed: number;
-  /** Halftone dots across the whole photo. */
   cells: number;
   filled: readonly boolean[];
   complete: boolean;
   /** Shown across the bottom of the photo once it is in full color. */
   question: string;
   targetSlot: number | null;
-  canPlace: boolean;
   renderer: HalftoneRenderer | null;
   onPlace: (slot: number) => void;
 }
 
-/**
- * The wall: slots laid over the photo, which fades in to full color once every slot is filled.
- * Reveal timings are design tokens (--reveal-*) and shrink by themselves for reduced motion.
- */
+/** The wall: slots over the photo, which fades in to full color once every slot is filled. */
 export function Wall({
   photo,
-  pieceCount,
+  pieces,
   width,
   height,
-  layoutSeed,
   cells,
   filled,
   complete,
   question,
   targetSlot,
-  canPlace,
   renderer,
   onPlace,
 }: WallProps) {
-  const pieces = useMemo(
-    () => new ImageSlicer(photo.width, photo.height).slice(pieceCount, { seed: layoutSeed }),
-    [photo.width, photo.height, pieceCount, layoutSeed],
-  );
-
-  // Whole-pixel boxes whose edges are shared, so the pieces meet with no seams.
+  // Whole-pixel boxes with shared edges, so the pieces meet with no seams.
   const boxes = useMemo<SlotBox[]>(() => {
     const sx = width / photo.width;
     const sy = height / photo.height;
@@ -77,12 +63,11 @@ export function Wall({
     >
       {pieces.map((piece, i) => (
         <Slot
-          key={`${pieceCount}-${piece.index}`}
+          key={piece.index}
           piece={piece}
           box={boxes[i]}
           filled={filled[i] === true}
           targeted={targetSlot === piece.index}
-          canPlace={canPlace}
           renderer={renderer}
           cells={cells}
           onPlace={onPlace}
@@ -108,7 +93,7 @@ export function Wall({
 
       {complete && (
         <p
-          className="pixel pixel-round absolute inset-x-0 bottom-0 animate-rise-in bg-paper p-caption text-center text-question text-ink"
+          className="absolute inset-x-0 bottom-0 animate-rise-in bg-paper p-caption text-center font-mono text-question font-medium text-ink"
           style={{ animationDelay: "var(--question-delay)" }}
         >
           {question}

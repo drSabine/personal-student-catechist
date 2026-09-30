@@ -35,12 +35,9 @@ const MAX_FAIR_SHARES = 2;
 const ATTEMPTS = 600;
 
 /**
- * Cuts an image into a mix of squares, lying bricks, and standing bricks of different sizes.
- * Filling one area never uncovers a whole band of the picture, so pupils cannot guess it too early.
- *
- * Every cut goes all the way across its part, so the bricks cover the image exactly
- * with no gaps or overlap. Edges are whole pixels and shared between neighbours.
- * Bricks are numbered top to bottom, then left to right.
+ * Cuts an image into squares, lying bricks, and standing bricks of different sizes, so no finished
+ * area gives the picture away. Cuts run all the way across, so the bricks cover the image exactly
+ * on whole pixels. Numbered top to bottom, then left to right.
  */
 export class ImageSlicer {
   constructor(
@@ -57,8 +54,7 @@ export class ImageSlicer {
       throw new Error("Piece count must be a positive whole number.");
     }
 
-    // Try seeded layouts until one has every shape and a spread of sizes.
-    // Deterministic: the same seed and count always give the same bricks.
+    // Try seeded layouts until one has every shape and a spread of sizes. Same seed, same bricks.
     let best: Rect[] = [];
     let bestScore = -Infinity;
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
@@ -130,6 +126,13 @@ export class ImageSlicer {
     const shape: BrickShape = stretch <= SQUARE_STRETCH ? "square" : width > height ? "horizontal" : "vertical";
     return { x, y, width, height, shape };
   }
+}
+
+/** Piece indices, bottom course first, so every brick comes after the ones beneath it. */
+export function layingOrder(pieces: readonly PieceBounds[]): number[] {
+  return [...pieces]
+    .sort((a, b) => b.y + b.height - (a.y + a.height) || a.x - b.x)
+    .map((piece) => piece.index);
 }
 
 /** Small repeatable random numbers (mulberry32). */

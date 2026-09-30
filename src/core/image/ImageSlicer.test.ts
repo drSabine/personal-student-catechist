@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ImageSlicer, type PieceBounds } from "./ImageSlicer";
+import { ImageSlicer, layingOrder, type PieceBounds } from "./ImageSlicer";
 
 function overlaps(a: PieceBounds, b: PieceBounds): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
@@ -59,6 +59,29 @@ describe("ImageSlicer", () => {
     for (let i = 1; i < pieces.length; i++) {
       const [a, b] = [pieces[i - 1], pieces[i]];
       expect(a.y < b.y || (a.y === b.y && a.x < b.x)).toBe(true);
+    }
+  });
+
+  it.each(cases)("lays $count bricks bottom course first for $width x $height", ({ width, height, count }) => {
+    const pieces = new ImageSlicer(width, height).slice(count);
+    const order = layingOrder(pieces);
+
+    expect([...order].sort((a, b) => a - b)).toEqual(pieces.map((p) => p.index));
+    expect(layingOrder(pieces)).toEqual(order);
+
+    const bottom = (index: number) => pieces[index].y + pieces[index].height;
+    expect(bottom(order[0])).toBe(height);
+    for (let i = 1; i < order.length; i++) {
+      expect(bottom(order[i - 1])).toBeGreaterThanOrEqual(bottom(order[i]));
+    }
+
+    // Nothing is laid before a brick that sits directly under it.
+    const position = (index: number) => order.indexOf(index);
+    for (const above of pieces) {
+      for (const below of pieces) {
+        const sitsUnder = below.y === above.y + above.height && below.x < above.x + above.width && above.x < below.x + below.width;
+        if (sitsUnder) expect(position(below.index)).toBeLessThan(position(above.index));
+      }
     }
   });
 
