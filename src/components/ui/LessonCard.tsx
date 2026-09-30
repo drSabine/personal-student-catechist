@@ -9,10 +9,7 @@ interface LessonCardProps {
   children?: ReactNode;
 }
 
-/**
- * The lesson's picture and big idea. Sits beside the reflection pages on wide screens,
- * and becomes a compact row above the content on phones.
- */
+/** The lesson's picture and big idea, beside the reflection pages (a compact row on phones). */
 export function LessonCard({ label, theme, cover, children }: LessonCardProps) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-hairline p-4 sm:p-5">

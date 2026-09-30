@@ -1,10 +1,8 @@
 export type Listener = () => void;
 
 /**
- * Small base for classes that React needs to watch.
- * Subclasses change their state, then call notify().
- * getSnapshot() returns the same object until the next notify(),
- * so it plugs straight into useSyncExternalStore.
+ * Base for classes React watches. Subclasses change state, then call notify().
+ * getSnapshot() is stable until the next notify(), which useSyncExternalStore needs.
  */
 export abstract class Observable<TSnapshot> {
   private readonly listeners = new Set<Listener>();
