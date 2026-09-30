@@ -4,16 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import type { Reflection } from "@/core/reflection/Reflection";
 import { reflectionRepository } from "@/core/reflection/repository";
 
-/**
- * The only way components reach reflection storage.
- * Swap the storage in src/core/reflection/repository.ts; nothing here changes.
- */
-export function useReflections(lessonId: string) {
+const REFRESH_MS = 15_000;
+
+interface Options {
+  /** Load the lesson's list and keep it fresh. Leave off where only saving is needed. */
+  list?: boolean;
+}
+
+/** The only way components reach reflection storage. */
+export function useReflections(lessonId: string, { list = false }: Options = {}) {
   const [loaded, setLoaded] = useState<{ lessonId: string; entries: Reflection[] } | null>(null);
   const [version, setVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!list) return;
     let active = true;
     reflectionRepository
       .listByLesson(lessonId)
@@ -28,7 +33,20 @@ export function useReflections(lessonId: string) {
     return () => {
       active = false;
     };
-  }, [lessonId, version]);
+  }, [list, lessonId, version]);
+
+  useEffect(() => {
+    if (!list) return;
+    const check = () => {
+      if (document.visibilityState === "visible") setVersion((v) => v + 1);
+    };
+    const timer = window.setInterval(check, REFRESH_MS);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [list]);
 
   const save = useCallback(
     async (input: { pupilName: string; content: string }) => {
@@ -45,5 +63,6 @@ export function useReflections(lessonId: string) {
   }, []);
 
   const entries = loaded?.lessonId === lessonId ? loaded.entries : null;
-  return { entries, error, save, remove };
+  // A failed refresh keeps the list on screen and tries again; only a first load shows the error.
+  return { entries, error: entries ? null : error, save, remove };
 }

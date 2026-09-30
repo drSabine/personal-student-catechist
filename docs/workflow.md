@@ -1,132 +1,79 @@
-# Workflow: branches, commits, checks, and releases
+# Workflow
 
-## The three kinds of branches
+## Branches
 
-| Branch | What it is | Who changes it |
+| Branch | What it is | Changed by |
 | --- | --- | --- |
-| `main` | Production. Vercel deploys it to the live site. | Only a pull request from `staging` |
-| `staging` | Where finished work collects and gets tried together. Vercel gives it a preview link. | Only pull requests from work branches |
-| `feat/...`, `fix/...`, `docs/...`, `refactor/...`, `chore/...` | One piece of work, for example `feat/lesson-02`. Short-lived. | You |
+| `main` | Production. Vercel deploys it. | A pull request from `staging` only |
+| `staging` | Finished work collects here. Vercel gives it a preview link. | Pull requests from work branches |
+| `feat/`, `fix/`, `docs/`, `refactor/`, `chore/` | One piece of work. Short-lived. | You |
 
 ```
-feat/lesson-02 ──PR (squash)──▶ staging ──PR (merge commit)──▶ main ──▶ Vercel production
+feat/lesson-02 --PR (squash)--> staging --PR (merge commit)--> main --> Vercel production
 ```
 
-## Day to day
+1. **Start** from the latest `staging`: `git fetch origin --prune`, `git switch staging`, `git pull --ff-only`, `git switch -c feat/lesson-02`.
+2. **Commit** with the format below. The hooks check each commit.
+3. **Push** with `git push -u origin HEAD` and open a pull request into `staging` on GitHub. CI runs and Vercel posts a preview: check it on a phone and a laptop. Merge with **Squash and merge**.
+4. **Release** with a pull request from `staging` into `main`, merged with **Create a merge commit**.
 
-1. **Start** from the latest `staging`:
+The skills `start-branch`, `commit`, `open-pr`, and `release` walk through each step.
 
-   ```bash
-   git switch staging
-   git pull --ff-only
-   git switch -c feat/lesson-02
-   ```
+## Commits
 
-2. **Commit** small steps with a clear message (format below). The hooks check each one.
+`type(scope): summary`. The scope is required, the first line is 72 characters or fewer, lower case, no period, no `Co-Authored-By`, no em dashes or emoji. The allowed types and scopes are in `.claude/skills/commit/SKILL.md`, and the `commit-msg` hook enforces them.
 
-3. **Push** and open a pull request into `staging`:
-
-   ```bash
-   git push -u origin HEAD
-   ```
-
-   Then on GitHub, open a pull request with base `staging`. CI runs, and Vercel posts a preview link. Check it on a phone and a laptop. Merge with **Squash and merge**.
-
-4. **Release** when `staging` is ready: open a pull request from `staging` into `main` and merge it with **Create a merge commit**. Vercel deploys `main` to production.
-
-In Claude Code, the skills `start-branch`, `commit`, `open-pr`, and `release` walk through each step.
-
-## Commit messages
-
-```
-type(scope): short summary in the present tense
-```
-
-The scope is required. The full lists of types and scopes are in `.claude/skills/commit/SKILL.md`; the `commit-msg` hook checks them.
-
-Examples: `feat(brick-wall): mix lying and standing bricks`, `fix(ui): keep the form beside its card`, `feat(lesson-02): add the sharing circle activity`, `docs(workflow): explain the release flow`, `chore(release): lesson 2`.
-
-Rules: first line 72 characters or fewer, lower case start, no period at the end, no `Co-Authored-By` lines, no em dashes or emoji.
-
-### Keep the history small
-
-- Commit when a piece of work is finished, not after every small tweak. Several rounds of changes to the same thing are one commit.
-- To add a forgotten change to your last commit before pushing: `git add <files>` then `git commit --amend --no-edit`.
-- Feature branches are squash-merged, so `staging` and `main` get one commit per feature no matter how many commits the branch had.
+Commit finished work, not every tweak: a few commits per piece of work is plenty. To fold a forgotten change into an unpushed commit: `git add <files>`, `git commit --amend --no-edit`.
 
 ## Checks
 
-### On your computer (git hooks)
+| Where | What runs |
+| --- | --- |
+| `pre-commit` hook | blocks `main` and `staging`, then lint, typecheck, tests |
+| `commit-msg` hook | the message format |
+| `pre-push` hook | blocks `main` and `staging`, then the production build |
+| GitHub Actions (`ci.yml`) | Lint, Typecheck, Test, Build on every push and pull request |
+| GitHub Actions (`release-guard.yml`) | only `staging` may be merged into `main` |
 
-`npm install` turns on the hooks in `.githooks/` (through the `prepare` script).
-
-| Hook | When | What |
-| --- | --- | --- |
-| `pre-commit` | every commit | stops commits on `main` or `staging`, then runs lint, typecheck, and tests |
-| `commit-msg` | every commit | checks the message format above |
-| `pre-push` | every push | stops pushes to `main` or `staging`, then runs the production build |
-
-Run everything by hand with `npm run check`.
-
-In an emergency, `git commit --no-verify` or `git push --no-verify` skips the hooks. CI still runs on GitHub, so broken code cannot reach `staging` or `main` once the branch rules below are on.
-
-### On GitHub (Actions)
-
-`.github/workflows/ci.yml` runs on every push to any branch and on every pull request into `staging` or `main`. Four checks run side by side:
-
-| Check | Command | Catches |
-| --- | --- | --- |
-| Lint | `npm run lint` | code style problems and risky patterns |
-| Typecheck | `npm run typecheck` | type errors (the "analyze" step) |
-| Test | `npm test` | broken rules in the lesson logic |
-| Build | `npm run build` | anything that stops the site from building |
-
-`.github/workflows/release-guard.yml` adds one more check on pull requests into `main`: **Only staging into main**.
-
-### Where the tests live
-
-Tests sit next to the code they test, as `*.test.ts` files (for example `BrickWallActivity.test.ts`). They are already separate files: the site never imports them, so they are not shipped, and Vitest only picks up files ending in `.test.ts`. Keeping them next to the code makes it easy to see what is tested.
+`npm install` turns the hooks on (`.githooks/`). `npm run check` runs everything by hand. `--no-verify` skips the hooks in an emergency, but CI still runs.
 
 ## Adding a package
 
-On Windows, `npm install <package>` can write a lockfile that `npm ci` on Linux rejects (CI then fails at "Run npm ci" with "lock file ... does not satisfy"). If that happens, rebuild the lockfile from scratch:
+On Windows, `npm install <package>` drops optional lockfile entries that Linux needs, and CI then fails at `npm ci` with "Missing: @emnapi/core from lock file". Do not rebuild the lockfile from scratch: that drops the Linux binaries too. Instead:
 
-```bash
-npm install --package-lock-only
+```powershell
+npm install <package>
+node scripts/restore-lockfile-optionals.mjs
+git diff --stat package-lock.json
 ```
 
-Run it after deleting `package-lock.json`, then check `npm run check` still passes and commit the new lockfile together with `package.json`, for example `build(deps): add lucide-react`.
+The diff should only add lines. Commit `package.json` and the lockfile together.
 
-## One-time setup on GitHub and Vercel
+## Windows and PowerShell problems
 
-These need an owner of the repository, in the browser.
+Development is on Windows PowerShell 5.1. The hooks run in Git Bash, but the commands you type do not.
 
-### Branch rules (GitHub)
+| Problem | Fix |
+| --- | --- |
+| `&&` and `\|\|` are parse errors | One command per line, or `a; if ($?) { b }`. `npm run check` is fine: npm chains it itself. |
+| `$(...)` and `VAR=1 cmd` are bash only | Use `$env:NAME = '1'; cmd; Remove-Item Env:NAME`, and put output in a variable first. |
+| Red "NativeCommandError" from npm, vitest, or git | Usually a harmless warning on stderr. Do not add `2>&1`. Check `$LASTEXITCODE`. |
+| `ConvertFrom-Json` fails on `package-lock.json` | Read it with `node -e`. |
+| `gh` is not installed | Open pull requests from `https://github.com/drSabine/personal-student-catechist/compare/staging...<branch>?expand=1`. |
+| A new branch starts behind | `git fetch origin --prune` and `git pull --ff-only` on `staging` first. |
+| `git branch -d` says "not fully merged" | Squash merges do that. Confirm with `git merge-base --is-ancestor <branch> origin/main` (exit 0) or the merged pull request, then `git branch -D`. |
+| "LF will be replaced by CRLF" | Harmless. `.gitattributes` keeps LF. Never save `.githooks/` files with CRLF. |
+| Hook says `npm: command not found` | Hooks need Node on the system PATH. Repair Node, restart the terminal and editor. |
+| History shows merge commits on `staging` | Choose **Squash and merge**, and set the ruleset's allowed method to Squash. |
 
-Settings, then Rules, then Rulesets, then New branch ruleset. Make two rulesets.
+To delete a finished branch, run `git branch -d <branch>` and `git push origin --delete <branch>`, never for `main` or `staging`. The `pre-push` hook builds first, so a delete takes a few seconds.
 
-**`main`**
+## One-time setup
 
-- Target: `main`
-- Restrict deletions; Block force pushes
-- Require a pull request before merging (allowed merge method: Merge)
-- Require status checks to pass: `Lint`, `Typecheck`, `Test`, `Build`, `Only staging into main`
-- Require branches to be up to date before merging
+**GitHub**, Settings, Rules, Rulesets, one per branch:
 
-**`staging`**
+- `main`: restrict deletions, block force pushes, require a pull request (merge method: Merge), require `Lint`, `Typecheck`, `Test`, `Build`, `Only staging into main`, and up to date branches.
+- `staging`: restrict deletions, block force pushes, require a pull request (merge method: Squash), require `Lint`, `Typecheck`, `Test`, `Build`.
+- Settings, General: tick **Automatically delete head branches**.
 
-- Target: `staging`
-- Restrict deletions; Block force pushes
-- Require a pull request before merging (allowed merge method: Squash)
-- Require status checks to pass: `Lint`, `Typecheck`, `Test`, `Build`
-
-Also in Settings, General: tick **Automatically delete head branches**.
-
-The check names appear in the list after CI has run once.
-
-### Vercel
-
-In the Vercel project, Settings, then Git (or Environments):
-
-- Production branch: `main`
-- Preview deployments: on for all other branches, so `staging` and every pull request get a preview link.
+**Vercel**: production branch `main`, preview deployments on for every other branch. Add the Upstash and Analytics integrations there (see `docs/reflections-storage.md`).

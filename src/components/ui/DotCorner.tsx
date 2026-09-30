@@ -1,7 +1,4 @@
-/**
- * Quiet dot grid for a top corner. Dots shrink away from the corner,
- * which fades the pattern without a gradient.
- */
+/** Dot grid for a top corner. Dots shrink away from it, so it fades without a gradient. */
 export function DotCorner({ className = "" }: { className?: string }) {
   const cols = 22;
   const rows = 12;

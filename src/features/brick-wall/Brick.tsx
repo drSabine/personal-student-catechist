@@ -1,50 +1,42 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
+import type { NextBrick } from "./BrickWallActivity";
 
 interface BrickProps {
-  /** Picks one of a few brick shapes, so each new brick looks different. */
-  shape: number;
-  ready: boolean;
+  brick: NextBrick;
+  /** Goes up each time the brick is dropped on the wrong spot, which shakes it. */
+  nudge: number;
   /** Called when the brick moves over a new empty slot, or off all slots. */
   onHover: (slot: number | null) => void;
   /** Called when the brick is let go over an empty slot. */
   onDrop: (slot: number) => void;
 }
 
-/**
- * Width and height multipliers of the base brick, like the pieces in the wall:
- * lying, standing, and square, in a few sizes.
- */
-const SHAPES: readonly (readonly [number, number])[] = [
-  [1, 1],
-  [0.5, 1.9],
-  [0.55, 1.15],
-  [1.2, 0.9],
-  [0.55, 1.7],
-  [0.7, 1.45],
-  [0.9, 1.1],
-];
+/** How far the brick's center has moved, and how much it grew to match its spot. */
+interface Drag {
+  x: number;
+  y: number;
+  scale: number;
+}
 
 /** Finds the empty slot under a point on the screen. */
 function emptySlotAt(x: number, y: number): number | null {
   for (const element of document.elementsFromPoint(x, y)) {
     const slot = element.closest<HTMLElement>("[data-slot]");
-    if (slot) {
-      return slot.dataset.empty === "true" ? Number(slot.dataset.slot) : null;
-    }
+    if (slot) return slot.dataset.empty === "true" ? Number(slot.dataset.slot) : null;
   }
   return null;
 }
 
 /**
- * The one brick at the bottom. Drag it with a mouse or a finger.
- * Pointer events cover both, and touch-action: none keeps the page from scrolling.
+ * The tray brick. It rests small, fitted to the tray (a size container, so every brick fills
+ * the same box). Picked up, it grows to its spot's exact size and its center follows the pointer.
  */
-export function Brick({ shape, ready, onHover, onDrop }: BrickProps) {
-  const start = useRef({ x: 0, y: 0 });
+export function Brick({ brick, nudge, onHover, onDrop }: BrickProps) {
+  const center = useRef({ x: 0, y: 0 });
   const hovered = useRef<number | null>(null);
-  const [offset, setOffset] = useState<{ x: number; y: number } | null>(null);
+  const [drag, setDrag] = useState<Drag | null>(null);
 
   function hover(slot: number | null) {
     if (slot !== hovered.current) {
@@ -54,53 +46,72 @@ export function Brick({ shape, ready, onHover, onDrop }: BrickProps) {
   }
 
   function handleDown(event: PointerEvent<HTMLDivElement>) {
-    if (!ready || event.button > 0) return;
+    if (event.button > 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    start.current = { x: event.clientX, y: event.clientY };
-    setOffset({ x: 0, y: 0 });
+
+    const own = event.currentTarget.getBoundingClientRect();
+    const spot = document.querySelector<HTMLElement>(`[data-slot="${brick.slot}"]`)?.getBoundingClientRect();
+    center.current = { x: own.left + own.width / 2, y: own.top + own.height / 2 };
+    setDrag({
+      x: event.clientX - center.current.x,
+      y: event.clientY - center.current.y,
+      scale: spot && own.width > 0 ? spot.width / own.width : 1,
+    });
   }
 
   function handleMove(event: PointerEvent<HTMLDivElement>) {
-    if (!offset) return;
-    setOffset({ x: event.clientX - start.current.x, y: event.clientY - start.current.y });
+    if (!drag) return;
+    setDrag({ ...drag, x: event.clientX - center.current.x, y: event.clientY - center.current.y });
     hover(emptySlotAt(event.clientX, event.clientY));
   }
 
   function handleUp(event: PointerEvent<HTMLDivElement>) {
-    if (!offset) return;
+    if (!drag) return;
     const slot = emptySlotAt(event.clientX, event.clientY);
-    hover(null);
-    setOffset(null);
+    handleCancel();
     if (slot !== null) onDrop(slot);
   }
 
   function handleCancel() {
     hover(null);
-    setOffset(null);
+    setDrag(null);
   }
-
-  const [w, h] = SHAPES[Math.abs(shape) % SHAPES.length];
-  const dragging = offset !== null;
 
   return (
     <div
       role="img"
-      aria-label={ready ? "Brick. Drag it to an empty spot, or tap a spot." : "Brick. Waiting for the music to stop."}
+      aria-label={`Brick ${brick.number}. Drag it to spot ${brick.number}, or tap that spot.`}
       onPointerDown={handleDown}
       onPointerMove={handleMove}
       onPointerUp={handleUp}
       onPointerCancel={handleCancel}
-      className={`relative touch-none select-none rounded-md bg-coral inset-shadow-brick ${
-        ready ? "cursor-grab active:cursor-grabbing" : "opacity-30"
-      } ${dragging ? "z-50" : "transition-transform duration-300 ease-(--ease-soft)"}`}
+      className={`relative shrink-0 cursor-grab touch-none select-none active:cursor-grabbing ${drag ? "z-50" : ""}`}
       style={{
-        width: `calc(var(--brick-width) * ${w})`,
-        height: `calc(var(--brick-height) * ${h})`,
-        transform: offset ? `translate(${offset.x}px, ${offset.y}px) scale(1.05)` : undefined,
+        width: `min(calc(100cqw * ${brick.size}), calc(100cqh * ${brick.size} * ${brick.aspect}))`,
+        aspectRatio: brick.aspect,
+        transform: drag ? `translate(${drag.x}px, ${drag.y}px)` : undefined,
       }}
     >
-      <span aria-hidden className="absolute left-1/8 top-1/5 h-1/7 w-1/5 rounded-xs bg-paper/35" />
+      {/* Separate layers, so growing, dragging, and shaking never fight over one transform. */}
+      <div
+        className={`size-full transition-transform duration-200 ease-(--ease-soft) ${drag ? "opacity-90" : ""}`}
+        style={{ transform: drag ? `scale(${drag.scale})` : undefined }}
+      >
+        <div
+          key={nudge}
+          className={`relative flex size-full items-center justify-center rounded-md bg-coral shadow-brick ${
+            nudge > 0 ? "animate-nudge" : ""
+          }`}
+        >
+          <span aria-hidden className="absolute left-1/8 top-1/5 h-1/7 w-1/5 rounded-xs bg-paper/35" />
+          <span aria-hidden className="absolute bottom-1/5 right-1/8 size-1.5 rounded-full bg-ink/15" />
+          <span aria-hidden className="absolute bottom-1/3 right-1/4 size-1 rounded-full bg-ink/15" />
+          <span aria-hidden className="text-sm font-semibold tabular-nums text-ink/70">
+            {brick.number}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

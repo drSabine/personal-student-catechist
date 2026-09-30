@@ -17,6 +17,15 @@ export const sansFont = localFont({
   fallback: ["system-ui", "sans-serif"],
 });
 
+/** Monospace for the wall's question only. */
+export const monoFont = localFont({
+  src: "../styles/fonts/GeistMono.woff2",
+  variable: "--nf-geist-mono",
+  weight: "100 900",
+  display: "swap",
+  fallback: ["ui-monospace", "monospace"],
+});
+
 /** Serif for reflection entries only. */
 export const serifFont = localFont({
   src: [

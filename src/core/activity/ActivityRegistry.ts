@@ -9,11 +9,7 @@ export interface ActivityViewProps<TActivity extends Activity = Activity> {
 
 type AnyActivityView = ComponentType<ActivityViewProps>;
 
-/**
- * Maps an activity type to the component that shows it.
- * New activity types register themselves in src/features/index.ts,
- * so no page has to change.
- */
+/** Maps an activity type to the component that shows it. Types register in src/features/index.ts. */
 export class ActivityRegistry {
   private readonly views = new Map<string, AnyActivityView>();
 

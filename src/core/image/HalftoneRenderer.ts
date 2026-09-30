@@ -21,13 +21,8 @@ export interface Size {
 }
 
 /**
- * Draws parts of a photo as black and white halftone dots, like newspaper print.
- *
- * The cell grid is laid over the whole photo, not each piece,
- * so neighbouring pieces line up like one printed page.
- *
- * The pixels can be a small copy of the photo: a few samples per dot is plenty,
- * and it keeps memory low. Pieces are still given in the photo's own size.
+ * Draws parts of a photo as halftone dots. The cell grid covers the whole photo, so neighbouring
+ * pieces line up. The pixels can be a small copy of the photo; pieces stay in the photo's own size.
  */
 export class HalftoneRenderer {
   /** Photo size: the space piece bounds are measured in. */
@@ -50,10 +45,7 @@ export class HalftoneRenderer {
     this.blackPoint = findBlackPoint(source);
   }
 
-  /**
-   * Draws one piece of the photo to fill a canvas area of destWidth by destHeight.
-   * The context should already be scaled for the device pixel ratio.
-   */
+  /** Draws one piece to fill destWidth by destHeight. The context is already scaled for the pixel ratio. */
   renderPiece(
     ctx: CanvasRenderingContext2D,
     piece: PieceBounds,
