@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+  Design tokens: the only place for colors, sizes, and timings.
+  Each token in @theme also becomes a Tailwind class, for example
+  --color-ink -> text-ink, --text-title -> text-title, --spacing-panel -> w-panel.
+  See docs/design.md. Flat colors only: no gradients, no divider lines.
+*/
+@theme {
+  /* Colors */
+  --color-paper: #fdfbf7;
+  --color-ink: #1c1a17;
+  --color-muted: #6b665e;
+  --color-hairline: #e8e3da;
+  --color-wash: #f5f1e9;
+  --color-gold: #c99a3b;
+  --color-coral: #e38b73;
+
+  /* Fonts */
+  --font-pixel: var(--nf-pixel), ui-monospace, monospace;
+  --font-sans: var(--nf-geist), system-ui, sans-serif;
+  --font-serif: var(--nf-sentient), Georgia, serif;
+
+  /* Type sizes that grow with the screen */
+  --text-title: clamp(1.5rem, 2.4vw, 2.25rem);
+  --text-title--line-height: 1.2;
+  --text-display: clamp(1.75rem, 3.5vw, 2.75rem);
+  --text-display--line-height: 1.15;
+  --text-stat: clamp(2.5rem, 5vw, 4rem);
+  --text-stat--line-height: 1;
+  /* Sized from the wall's width (a container), so it stays on one line. */
+  --text-question: max(1.75rem, 9.5cqi);
+  --text-question--line-height: 1;
+
+  --tracking-label: 0.14em;
+
+  /* Layout sizes */
+  --spacing-sidebar: 16rem;
+  --spacing-aside: 20rem;
+  /* Widest a content page grows, so it stays together on a TV. */
+  --container-page: 96rem;
+  --spacing-panel: clamp(17rem, 24vw, 24rem);
+  /* The free space beside a square wall, so the floating panel never covers it. */
+  --spacing-float-panel: clamp(13.5rem, calc((100vw - 100vh) / 2 - 1.5rem), 18rem);
+  --spacing-tray: clamp(5.5rem, 13vh, 9.5rem);
+  /* Padding that scales with its own text, for the question band. */
+  --spacing-caption: 0.25em;
+
+  /* Depth, made from ink so it follows the palette */
+  --inset-shadow-brick: inset 0 -0.3rem 0 color-mix(in srgb, var(--color-ink) 14%, transparent);
+  --shadow-float: 0 0.75rem 2rem color-mix(in srgb, var(--color-ink) 8%, transparent);
+
+  /* Motion */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-settle: settle 420ms var(--ease-soft) both;
+  --animate-pop-in: pop-in 360ms var(--ease-soft) both;
+  --animate-rise-in: rise-in 900ms var(--ease-soft) both;
+
+  /* A placed brick settles into its spot. */
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(-8%) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* A new brick appears in the tray. */
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Words that arrive after the reveal. */
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.6rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Tokens used from component styles rather than as classes. */
+:root {
+  --brick-width: clamp(5.25rem, 13vh, 8.25rem);
+  --brick-height: clamp(2.5rem, 6.5vh, 4rem);
+
+  --duration-quick: 200ms;
+  --reveal-delay: 500ms;
+  --reveal-duration: 4000ms;
+  --question-delay: 3700ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --reveal-delay: 0ms;
+    --reveal-duration: 500ms;
+    --question-delay: 400ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Geist Pixel with square pixels. Use for headings only. */
+.pixel {
+  font-family: var(--font-pixel);
+  font-variation-settings: "ELSH" 0;
+  font-weight: 400;
+}
+
+/* Round pixels, like the halftone dots. Used for the big reveal. */
+.pixel-round {
+  font-variation-settings: "ELSH" 20;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}

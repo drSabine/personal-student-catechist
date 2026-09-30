@@ -1,0 +1,18 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { site } from "@/content/site";
+import { pixelFont, sansFont, serifFont } from "./fonts";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: site.name,
+  description: `Classroom lessons for ${site.grade} ${site.name}.`,
+};
+
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="en" className={`${pixelFont.variable} ${sansFont.variable} ${serifFont.variable}`}>
+      <body>{children}</body>
+    </html>
+  );
+}
