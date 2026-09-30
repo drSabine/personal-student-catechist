@@ -63,7 +63,7 @@ docs/                      how-tos (adding a lesson, storage, design, workflow)
 
 ## Build Our Wall in one breath
 
-`BrickWallActivity` holds the slots. `PassTheDove` tracks Play and Stop (the brick only moves after Stop). `ImageSlicer` cuts the photo into a repeatable mix of lying and standing bricks, so no finished area gives the picture away and slot i always shows piece i. `HalftoneRenderer` draws each placed piece as ink dots. When every slot is filled, `Wall` fades in the color photo and shows the question in a band across its bottom. `BrickWallView` has a full screen mode for the TV.
+`BrickWallActivity` holds the slots. `PassTheDove` tracks Play and Stop (the brick only moves after Stop). `ImageSlicer` cuts the photo into a repeatable mix of squares, lying bricks, and standing bricks of different sizes, so no finished area gives the picture away and slot i always shows piece i. `HalftoneRenderer` draws each placed piece as ink dots. When every slot is filled, `Wall` fades in the color photo and shows the question in a band across its bottom. `BrickWallView` has a full screen mode for the TV.
 
 ## Design rules
 

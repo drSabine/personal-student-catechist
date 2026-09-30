@@ -13,7 +13,7 @@ export interface BrickWallInit extends ActivityInit {
   question: string;
   pieceCounts?: readonly number[];
   defaultPieceCount?: number;
-  /** Picks the brick pattern. Change it for a different mix of lying and standing bricks. */
+  /** Picks the brick pattern. Change it for a different mix of squares, lying, and standing bricks. */
   layoutSeed?: number;
   /** Halftone dots across the whole photo. More dots, finer print. */
   halftoneCells?: number;

@@ -56,7 +56,7 @@ Tips:
 - `width` and `height` must be the real size of the photo in pixels. On Windows, right click the file, then Properties, then Details.
 - Piece counts are whole numbers of 2 or more.
 - `halftoneCells` (optional, default 72) sets how many dots go across the photo. More dots, finer print.
-- `layoutSeed` (optional, default 1) picks the brick pattern. The wall mixes lying and standing bricks so pupils cannot guess the picture early. If a pattern happens to uncover something important too soon, try another number. The pattern is the same every time, so each spot always shows the same part of the photo.
+- `layoutSeed` (optional, default 1) picks the brick pattern. The wall mixes squares, lying bricks, and standing bricks of different sizes so pupils cannot guess the picture early. If a pattern happens to uncover something important too soon, try another number. The pattern is the same every time, so each spot always shows the same part of the photo.
 
 ## 3. Add the pictures
 

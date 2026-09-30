@@ -1,4 +1,5 @@
-export type BrickOrientation = "horizontal" | "vertical";
+/** Squares, bricks lying flat, and bricks standing up. */
+export type BrickShape = "square" | "horizontal" | "vertical";
 
 export interface PieceBounds {
   index: number;
@@ -6,7 +7,7 @@ export interface PieceBounds {
   y: number;
   width: number;
   height: number;
-  orientation: BrickOrientation;
+  shape: BrickShape;
 }
 
 export interface SliceOptions {
@@ -21,16 +22,21 @@ interface Rect {
   y1: number;
 }
 
-/** A brick must be at least this much longer than it is wide, so it reads as lying or standing. */
-const MIN_STRETCH = 1.3;
-/** And no thinner than this, so no piece becomes a sliver. */
-const MAX_STRETCH = 4;
-const ATTEMPTS = 400;
+/** Longest side over shortest side. At or below this, a piece reads as a square. */
+const SQUARE_STRETCH = 1.2;
+/** At or above this, a piece clearly lies flat or stands up. */
+const BRICK_STRETCH = 1.5;
+/** No piece thinner than this, so none becomes a sliver. */
+const MAX_STRETCH = 3.5;
+/** The biggest piece is at least this many times the smallest, so sizes vary too. */
+const MIN_SIZE_SPREAD = 2.2;
+/** But no piece may cover more than this many fair shares, so no single slab gives the picture away. */
+const MAX_FAIR_SHARES = 2;
+const ATTEMPTS = 600;
 
 /**
- * Cuts an image into bricks that are either lying (horizontal) or standing (vertical),
- * mixed together. Filling one area never uncovers a whole band of the picture,
- * so pupils cannot guess it too early.
+ * Cuts an image into a mix of squares, lying bricks, and standing bricks of different sizes.
+ * Filling one area never uncovers a whole band of the picture, so pupils cannot guess it too early.
  *
  * Every cut goes all the way across its part, so the bricks cover the image exactly
  * with no gaps or overlap. Edges are whole pixels and shared between neighbours.
@@ -51,7 +57,7 @@ export class ImageSlicer {
       throw new Error("Piece count must be a positive whole number.");
     }
 
-    // Try seeded layouts until one has only clear bricks, in both directions.
+    // Try seeded layouts until one has every shape and a spread of sizes.
     // Deterministic: the same seed and count always give the same bricks.
     let best: Rect[] = [];
     let bestScore = -Infinity;
@@ -76,7 +82,8 @@ export class ImageSlicer {
   private split(rect: Rect, count: number, random: () => number): Rect[] {
     if (count === 1) return [rect];
     const first = 1 + Math.floor(random() * (count - 1));
-    const share = (first / count) * (0.85 + random() * 0.3);
+    // Cut near the fair share, but not exactly on it, so sizes vary.
+    const share = Math.min(0.88, Math.max(0.12, (first / count) * (0.65 + random() * 0.7)));
     const across = random() < 0.5;
     const [a, b] = across
       ? [
@@ -90,22 +97,28 @@ export class ImageSlicer {
     return [...this.split(a, first, random), ...this.split(b, count - first, random)];
   }
 
-  /** 0 or more when every brick is clearly lying or standing and both kinds appear. */
+  /** 0 or more when all three shapes appear, sizes vary, and nothing is a sliver. */
   private score(rects: Rect[]): number {
-    let worst = Infinity;
-    let lying = 0;
-    let standing = 0;
+    const kinds = new Set<BrickShape>();
+    let thinnest = 0;
+    let smallest = Infinity;
+    let largest = 0;
     for (const rect of rects) {
       const w = (rect.x1 - rect.x0) * this.width;
       const h = (rect.y1 - rect.y0) * this.height;
       const stretch = Math.max(w, h) / Math.min(w, h);
-      if (w > h) lying++;
-      else standing++;
-      // Positive when inside the allowed range, negative when too square or too thin.
-      worst = Math.min(worst, stretch - MIN_STRETCH, MAX_STRETCH - stretch);
+      if (stretch <= SQUARE_STRETCH) kinds.add("square");
+      else if (stretch >= BRICK_STRETCH) kinds.add(w > h ? "horizontal" : "vertical");
+      thinnest = Math.max(thinnest, stretch);
+      smallest = Math.min(smallest, w * h);
+      largest = Math.max(largest, w * h);
     }
-    const mixed = rects.length < 2 || (lying > 0 && standing > 0);
-    return mixed ? worst : worst - 10;
+    // How many shapes this many pieces can show: 1 piece is one shape, 2 pieces two, then all three.
+    const missing = Math.min(3, rects.length) - kinds.size;
+    const spread = rects.length >= 4 ? largest / smallest - MIN_SIZE_SPREAD : 0;
+    const total = this.width * this.height;
+    const slab = MAX_FAIR_SHARES - (largest / total) * rects.length;
+    return Math.min(MAX_STRETCH - thinnest, spread, slab) - missing * 10;
   }
 
   private toPixels(rect: Rect): Omit<PieceBounds, "index"> {
@@ -113,7 +126,9 @@ export class ImageSlicer {
     const y = Math.round(rect.y0 * this.height);
     const width = Math.round(rect.x1 * this.width) - x;
     const height = Math.round(rect.y1 * this.height) - y;
-    return { x, y, width, height, orientation: width >= height ? "horizontal" : "vertical" };
+    const stretch = Math.max(width, height) / Math.min(width, height);
+    const shape: BrickShape = stretch <= SQUARE_STRETCH ? "square" : width > height ? "horizontal" : "vertical";
+    return { x, y, width, height, shape };
   }
 }
 
