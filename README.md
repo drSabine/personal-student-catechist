@@ -71,5 +71,6 @@ Work never goes straight to the live site. Make a branch from `staging`, open a 
 - [docs/reflections-storage.md](docs/reflections-storage.md): plugging in your own storage
 - [docs/design.md](docs/design.md): colors, fonts, and design rules
 - [docs/workflow.md](docs/workflow.md): branches, commits, checks, and releases
+- [docs/reports/admin-access.md](docs/reports/admin-access.md): proposal for a teacher-only page to manage reflections
 
 Fonts: Geist and Geist Pixel (SIL Open Font License) and Sentient (ITF Free Font License). The license files are in `src/styles/fonts/`.

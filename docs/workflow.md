@@ -87,6 +87,16 @@ In an emergency, `git commit --no-verify` or `git push --no-verify` skips the ho
 
 Tests sit next to the code they test, as `*.test.ts` files (for example `BrickWallActivity.test.ts`). They are already separate files: the site never imports them, so they are not shipped, and Vitest only picks up files ending in `.test.ts`. Keeping them next to the code makes it easy to see what is tested.
 
+## Adding a package
+
+On Windows, `npm install <package>` can write a lockfile that `npm ci` on Linux rejects (CI then fails at "Run npm ci" with "lock file ... does not satisfy"). If that happens, rebuild the lockfile from scratch:
+
+```bash
+npm install --package-lock-only
+```
+
+Run it after deleting `package-lock.json`, then check `npm run check` still passes and commit the new lockfile together with `package.json`, for example `build(deps): add lucide-react`.
+
 ## One-time setup on GitHub and Vercel
 
 These need an owner of the repository, in the browser.
