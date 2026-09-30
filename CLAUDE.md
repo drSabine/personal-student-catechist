@@ -83,7 +83,8 @@ Read `docs/workflow.md`. The short version:
 
 - `main` is production (Vercel). `staging` collects finished work. Nothing is committed or pushed to either directly.
 - Every change starts on a branch cut from `staging`: `feat/`, `fix/`, `docs/`, `refactor/`, `chore/` (skill: `start-branch`).
-- Commit messages: `type(scope): summary`, 72 characters max, no Co-Authored-By or other attribution lines (skill: `commit`).
+- Commit messages: `type(scope): summary` with a required scope, for example `feat(ui): ...` or `chore(deps): ...`. 72 characters max, no Co-Authored-By or other attribution lines (skill: `commit`).
+- **Only commit when the user asks**, and group each finished piece of work into one commit. Rounds of feedback on the same thing are one commit, not one per round.
 - Pull request into `staging`, squash merge (skill: `open-pr`). Release by a pull request from `staging` into `main`, merge commit (skill: `release`).
 - Hooks in `.githooks/` run lint, typecheck, and tests before each commit and the build before each push. GitHub Actions runs all four on every push and pull request.
 - Run `npm run check` before opening a pull request.

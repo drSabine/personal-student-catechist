@@ -42,22 +42,17 @@ In Claude Code, the skills `start-branch`, `commit`, `open-pr`, and `release` wa
 type(scope): short summary in the present tense
 ```
 
-| Type | Use for |
-| --- | --- |
-| `feat` | a new lesson, activity, or feature |
-| `fix` | a bug fix |
-| `docs` | docs only |
-| `style` | formatting only |
-| `refactor` | a code change with the same behavior |
-| `perf` | faster or lighter |
-| `test` | tests only |
-| `build` | dependencies or build setup |
-| `ci` | GitHub Actions |
-| `chore` | anything else, including releases |
+The scope is required. The full lists of types and scopes are in `.claude/skills/commit/SKILL.md`; the `commit-msg` hook checks them.
 
-Examples: `feat(lesson-02): add the sharing circle activity`, `fix(brick-wall): keep the brick under the finger on iPad`.
+Examples: `feat(brick-wall): mix lying and standing bricks`, `fix(ui): keep the form beside its card`, `feat(lesson-02): add the sharing circle activity`, `docs(workflow): explain the release flow`, `chore(release): lesson 2`.
 
-Rules: first line 72 characters or fewer, no period at the end, no `Co-Authored-By` lines, no em dashes or emoji.
+Rules: first line 72 characters or fewer, lower case start, no period at the end, no `Co-Authored-By` lines, no em dashes or emoji.
+
+### Keep the history small
+
+- Commit when a piece of work is finished, not after every small tweak. Several rounds of changes to the same thing are one commit.
+- To add a forgotten change to your last commit before pushing: `git add <files>` then `git commit --amend --no-edit`.
+- Feature branches are squash-merged, so `staging` and `main` get one commit per feature no matter how many commits the branch had.
 
 ## Checks
 
