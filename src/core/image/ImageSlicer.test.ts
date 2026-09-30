@@ -35,15 +35,17 @@ describe("ImageSlicer", () => {
     }
   });
 
-  it.each(cases)("makes $count clear bricks for $width x $height, both lying and standing", ({ width, height, count }) => {
+  it.each(cases)("mixes squares, lying, and standing bricks of varied sizes for $width x $height, $count pieces", ({ width, height, count }) => {
     const pieces = new ImageSlicer(width, height).slice(count);
     for (const piece of pieces) {
       const stretch = Math.max(piece.width, piece.height) / Math.min(piece.width, piece.height);
-      expect(stretch).toBeGreaterThanOrEqual(1.29);
-      expect(stretch).toBeLessThanOrEqual(4.01);
+      expect(stretch).toBeLessThanOrEqual(3.51);
     }
-    const orientations = new Set(pieces.map((p) => p.orientation));
-    expect(orientations).toEqual(new Set(["horizontal", "vertical"]));
+    expect(new Set(pieces.map((p) => p.shape))).toEqual(new Set(["square", "horizontal", "vertical"]));
+    const areas = pieces.map((p) => p.width * p.height);
+    expect(Math.max(...areas) / Math.min(...areas)).toBeGreaterThanOrEqual(2.2);
+    // No slab bigger than two fair shares.
+    expect(Math.max(...areas) / (width * height)).toBeLessThanOrEqual(2 / count + 0.001);
   });
 
   it("gives the same bricks every time, and different ones for another seed", () => {
