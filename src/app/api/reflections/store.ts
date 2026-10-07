@@ -1,7 +1,7 @@
-import { Redis } from "@upstash/redis";
 import { InMemoryReflectionRepository } from "@/core/reflection/InMemoryReflectionRepository";
 import { RedisReflectionRepository } from "@/core/reflection/RedisReflectionRepository";
 import type { ReflectionRepository } from "@/core/reflection/ReflectionRepository";
+import { redisFromEnv } from "../redis";
 
 /** On globalThis so every route handler, and every dev reload, shares one store. */
 const shared = globalThis as typeof globalThis & { reflectionStore?: ReflectionRepository };
@@ -13,11 +13,9 @@ const shared = globalThis as typeof globalThis & { reflectionStore?: ReflectionR
 export function getStore(): ReflectionRepository | null {
   if (shared.reflectionStore) return shared.reflectionStore;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
-
-  if (url && token) {
-    shared.reflectionStore = new RedisReflectionRepository(new Redis({ url, token }));
+  const redis = redisFromEnv();
+  if (redis) {
+    shared.reflectionStore = new RedisReflectionRepository(redis);
   } else if (process.env.NODE_ENV !== "production") {
     shared.reflectionStore = new InMemoryReflectionRepository();
   }
