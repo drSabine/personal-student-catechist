@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-A small classroom website for Grade 5 Christian Living, shown on an LED TV from a laptop and sometimes on a phone. Lessons are added one at a time. No login. The only server code is the reflections API.
+A small classroom website for Grade 5 Christian Living, shown on an LED TV from a laptop and sometimes on a phone. Lessons are added one at a time. No login. The only server code is the reflections API and the game saves API.
 
 ## Docs
 
@@ -9,6 +9,7 @@ A small classroom website for Grade 5 Christian Living, shown on an LED TV from 
 - `docs/design.md`: look, tokens, layout, and how the activity behaves
 - `docs/adding-a-lesson.md`: adding lessons and activity types
 - `docs/reflections-storage.md`: how reflections are saved
+- `docs/game-saves.md`: how a game's progress is saved
 - `docs/workflow.md`: branches, commits, checks, releases, and Windows problems
 
 Keep docs short and stable. Describe how and why, not current values that the code already shows. Update a doc only when a rule or a how-to changes.
