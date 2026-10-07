@@ -42,6 +42,7 @@ This machine runs Windows PowerShell 5.1: no `&&` or `||`, and no bash forms lik
 | `ui` | shared components, layout, sidebar, pages |
 | `design` | tokens, colors, fonts, spacing |
 | `brick-wall` | the Build Our Wall activity |
+| `bayan` | the Build Our Bayan game |
 | `reflections` | writing, reading, and storing reflections |
 | `lessons` | the lesson system (registry, runner) |
 | `lesson-01`, `lesson-02`, ... | one lesson's content |

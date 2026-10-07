@@ -46,6 +46,22 @@ Font files and licenses are in `src/styles/fonts/`.
 - Filled spots are halftone dots. When the wall is full, the color photo fades in and the question appears on one line across the bottom.
 - Music is played separately, so the panel is only Reset and full screen.
 
+## Build Our Bayan
+
+A pixel town on Phaser and grid-engine, with every word drawn by React over the canvas so it stays sharp and readable on a TV.
+
+- Who does what: `BayanRules` holds the rules, `Director` runs the story (opening, leaders, questions, closing), two zustand stores hold the saved progress and what is on screen, and the scenes only draw. The scenes hear "now" moments through one small `EventBus`.
+- Buildings rise from a change in saved progress, not from an event, so a refresh draws the town as it is and any change made elsewhere still animates.
+- Guidance comes in layers: the guide's opening, a quest card, a bouncing arrow over the next leader, a question mark over each leader still to find, a big Talk button, and a hint from the guide when the class wanders too long.
+- Everyone has an id (their object's name in the map) and a behavior, so no two move alike: leaders breathe and shift their weight, builders swing their tools, Paolo runs and chases Joy, Aling Nena steps out of her store, Mang Ben walks his taho round, hens peck, chicks trail a hen, Bantay follows the pupil and wanders off to sniff, and Muning naps. Each runs on its own clock with random pauses. A new habit is one entry in `town/Behaviors.ts`. Townsfolk and animals never block the pupil.
+- The town is a clearing in a forest bigger than any screen, and the camera frames the town, so there is never empty space around it. Tall trees draw their tops above the people; forest tiles overlap, so no tree is cut in half.
+- Conversations are role plays. Each lot has a script in the leaders' own voices, four questions (who leads, what they do for us, how they lead, how we help them), and for every question a hint in the leader's voice after a wrong choice and praise after a right one. The name plate, the portrait, and "That's right!" are sized to read across a classroom.
+- Keys: arrows or WASD walk, Enter, Space, or E talks, Enter moves the conversation on, and 1, 2, 3 answer. An Enter meant to skip a line never picks an answer, and a key held from closing a conversation does not reopen it.
+- Text sizes come from the game area (a size container), so the same page reads well on a phone and from the back of a classroom.
+- Pixels stay square: the canvas is drawn at device pixels and the camera zooms by whole numbers when it can. Too small to read, the camera follows the pupil instead.
+- Positions live in the Tiled maps (`public/lessons/lesson-02/maps`), never in code. Open them in Tiled to move anyone.
+- The teacher panel has Music, Sounds, the opening again, and Reset (tapped twice). Music drops while someone speaks.
+
 ## Performance
 
 Release what is no longer needed, the way Flutter widgets clean up in `dispose`.
@@ -55,3 +71,4 @@ Release what is no longer needed, the way Flutter widgets clean up in `dispose`.
 - The color photo starts loading after the first brick.
 - Every listener, observer, and timer is removed in the effect cleanup. After an `await`, check you are still mounted.
 - Lesson pages are built ahead of time, so they open instantly.
+- The game loads only in the browser and is destroyed when its page closes. All games on the page share one audio context, because browsers allow only a few.

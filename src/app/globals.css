@@ -35,6 +35,34 @@
   --text-slot: max(1rem, 5cqi);
   --text-slot--line-height: 1;
 
+  /* Build Our Bayan: sized from the game area (a size container), so words read from the back of a room on a TV. */
+  --text-game: max(1.125rem, 3.1cqmin);
+  --text-game--line-height: 1.35;
+  --text-game-small: max(0.875rem, 2.1cqmin);
+  --text-game-small--line-height: 1.3;
+  --text-game-name: max(1.125rem, 3.2cqmin);
+  --text-game-name--line-height: 1.1;
+  --text-game-title: max(1.375rem, 4.6cqmin);
+  --text-game-title--line-height: 1.1;
+  --text-game-choice: max(1.0625rem, 2.8cqmin);
+  --text-game-choice--line-height: 1.25;
+  --spacing-portrait: max(4.5rem, 15cqmin);
+  --spacing-game-gap: max(0.5rem, 1.6cqmin);
+  --container-dialog: 62rem;
+  --container-quest: max(14rem, 30cqmin);
+  --container-bubble: max(9rem, 26cqmin);
+  --color-leaf: #479f4a;
+  --shadow-game: 0 0.4rem 0 color-mix(in srgb, var(--color-ink) 22%, transparent);
+  --animate-bob: bob 1.6s ease-in-out infinite;
+  --animate-shake: nudge 320ms var(--ease-soft);
+
+  /* The Talk button and the guide arrow bob gently so the eye finds them. */
+  @keyframes bob {
+    50% {
+      transform: translateY(-0.25rem);
+    }
+  }
+
   --tracking-label: 0.14em;
 
   /* Layout sizes */
@@ -123,6 +151,27 @@
   --reveal-delay: 500ms;
   --reveal-duration: 4000ms;
   --question-delay: 3700ms;
+  /* Build Our Bayan: smallest a map tile may look, in CSS pixels, before the camera follows the pupil. */
+  --game-min-tile: 24;
+  /* Milliseconds per letter as a line is spoken, and the pause after a right answer. */
+  --game-letter-ms: 26;
+  --game-answer-pause-ms: 1100;
+  --game-stage-banner-ms: 4500;
+  --game-talk-cooldown-ms: 500;
+  /* Art colors for tinted sprites, taken from the pixel art's own palette. */
+  --game-confetti: #e84537 #fdbe53 #0099db #84c669 #d176d0;
+  --game-butterflies: #fdbe53 #d176d0 #76e4ff #ffffff;
+  --game-smoke: #c0cbdc;
+}
+
+/* A person from the people sheet, drawn crisp at portrait size. Set --row to their row and --rows to the sheet's rows. */
+.portrait {
+  width: var(--spacing-portrait);
+  height: var(--spacing-portrait);
+  background-repeat: no-repeat;
+  background-size: calc(var(--spacing-portrait) * 2) calc(var(--spacing-portrait) * var(--rows));
+  background-position: 0 calc(var(--spacing-portrait) * var(--row) * -1);
+  image-rendering: pixelated;
 }
 
 @media (prefers-reduced-motion: reduce) {
