@@ -6,6 +6,15 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "dev-memory",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "-e",
+        "process.env.UPSTASH_REDIS_REST_URL='';process.env.UPSTASH_REDIS_REST_TOKEN='';require('child_process').spawn('npx',['next','dev','-p','3001'],{stdio:'inherit',shell:true,env:process.env}).on('exit',c=>process.exit(c??0))"
+      ],
+      "port": 3001
     }
   ]
 }

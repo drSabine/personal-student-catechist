@@ -28,5 +28,5 @@ A lesson can hold several activities. Numbered buttons then appear to switch bet
 ## A game like Build Our Bayan
 
 - Words live in the lesson's content file (`lesson-02/bayan.ts`): every line, question, hint, and person's name. Scenes hold no lesson text.
-- Positions live in the Tiled map. Each person is an object whose name is their id; the content file says who that id is, and the object's `behavior` says how they move.
+- Positions live in the map, which `tools/bayan-art/gen_maps.py` writes. Each person is an object whose name is their id; the content file says who that id is and how they look, and the object's `behavior` says how they move.
 - Progress is saved for the class (see `docs/game-saves.md`), so the teacher resets the town from the game's teacher panel before a new class.

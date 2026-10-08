@@ -1,5 +1,6 @@
 import { NoPathFoundStrategy, type GridEngine } from "grid-engine";
 import * as Phaser from "phaser";
+import { KEY, type Frames } from "../assets";
 import type { TilePoint } from "../mapObjects";
 import type { Actor, Cast } from "./Cast";
 
@@ -10,6 +11,7 @@ const PUPIL = "pupil";
 /**
  * How each person and animal moves when nobody is talking to them. Every one runs their own loop,
  * with their own speed, pauses, and habits, and none start together, so the town never moves in step.
+ * Pauses are long on purpose: a calm town keeps eyes on the leaders.
  * Each map object names its behavior; a new one is a new entry in `run`.
  */
 export class Behaviors {
@@ -21,6 +23,7 @@ export class Behaviors {
     private readonly scene: Phaser.Scene,
     private readonly gridEngine: GridEngine,
     private readonly cast: Cast,
+    private readonly frames: Frames,
     private readonly route: readonly TilePoint[],
   ) {}
 
@@ -35,7 +38,6 @@ export class Behaviors {
       dog: (a) => this.dog(a),
       cat: (a) => this.cat(a),
       hen: (a) => this.hen(a),
-      chick: (a) => this.chick(a),
     };
     for (const actor of this.cast.actors.values()) run[actor.behavior]?.(actor);
   }
@@ -64,9 +66,9 @@ export class Behaviors {
       const working = actor.held?.visible && actor.held.alpha > 0;
       if (working && Math.random() < 0.6) {
         this.swing(actor);
-        return this.later(between([1800, 3600]), loop);
+        return this.later(between([3000, 6000]), loop);
       }
-      this.stroll(actor, actor.roam || 1, [1.3, 2.2], () => this.later(between(working ? [1500, 4000] : [3000, 8000]), loop));
+      this.stroll(actor, actor.roam || 1, [1.2, 1.8], () => this.later(between(working ? [3000, 7000] : [6000, 14000]), loop));
     };
     this.later(between([0, 3000]), loop);
   }
@@ -76,8 +78,8 @@ export class Behaviors {
     const loop = () => {
       if (this.busy(actor)) return this.later(800, loop);
       const friend = this.cast.ofKind("townsfolk").find((other) => other.id !== actor.id && other.behavior === "wanderer");
-      if (friend && Math.random() < 0.25) {
-        this.gridEngine.setSpeed(actor.id, 4.5);
+      if (friend && Math.random() < 0.12) {
+        this.gridEngine.setSpeed(actor.id, 3.5);
         this.gridEngine.follow(actor.id, friend.id, { distance: 1, closestPointIfBlocked: true });
         return this.later(between([2500, 4500]), () => {
           this.gridEngine.stopMovement(actor.id);
@@ -85,7 +87,7 @@ export class Behaviors {
           this.later(between([400, 1200]), loop);
         });
       }
-      this.stroll(actor, actor.roam, [3.5, 5], () => this.later(between([200, 1300]), loop));
+      this.stroll(actor, actor.roam, [2, 3], () => this.later(between([2500, 6000]), loop));
     };
     this.later(between([0, 1500]), loop);
   }
@@ -94,8 +96,8 @@ export class Behaviors {
   private wanderer(actor: Actor) {
     const loop = () => {
       if (this.busy(actor)) return this.later(800, loop);
-      if (Math.random() < 0.2) this.hop(actor, 3);
-      this.stroll(actor, actor.roam, [1.8, 2.8], () => this.later(between([1200, 4500]), loop));
+      if (Math.random() < 0.1) this.hop(actor, 2);
+      this.stroll(actor, actor.roam, [1.5, 2.2], () => this.later(between([3000, 8000]), loop));
     };
     this.later(between([500, 2500]), loop);
   }
@@ -120,7 +122,7 @@ export class Behaviors {
     const next = () => {
       if (this.busy(actor)) return this.later(800, next);
       stop = (stop + 1) % this.route.length;
-      this.walk(actor, this.route[stop], Phaser.Math.FloatBetween(1.3, 2), () => this.later(between([1500, 4500]), next));
+      this.walk(actor, this.route[stop], Phaser.Math.FloatBetween(1.2, 1.6), () => this.later(between([4000, 9000]), next));
     };
     this.later(between([500, 2000]), next);
   }
@@ -132,8 +134,8 @@ export class Behaviors {
       this.gridEngine.follow(actor.id, PUPIL, { distance: 1, closestPointIfBlocked: true });
     };
     const loop = () => {
-      heel(4.5);
-      this.later(between([9000, 18000]), () => {
+      heel(4);
+      this.later(between([15000, 30000]), () => {
         if (this.busy(actor)) return loop();
         this.gridEngine.stopMovement(actor.id);
         const here = this.gridEngine.getPosition(actor.id);
@@ -153,6 +155,15 @@ export class Behaviors {
 
   // Muning naps, blinking, and only now and then gets up to find a new spot.
   private cat(actor: Actor) {
+    if (!this.scene.anims.exists("cat")) {
+      const [open, shut] = [this.frames.extra("cat"), this.frames.extra("cat-blink")];
+      this.scene.anims.create({
+        key: "cat",
+        frames: [open, open, open, open, open, shut].map((frame) => ({ key: KEY.extraFrames, frame })),
+        frameRate: 3,
+        repeat: -1,
+      });
+    }
     actor.sprite.play("cat");
     const loop = () => {
       this.later(between([15000, 35000]), () => {
@@ -171,29 +182,11 @@ export class Behaviors {
   private hen(actor: Actor) {
     const loop = () => {
       if (this.busy(actor)) return this.later(800, loop);
-      if (Math.random() < 0.55) {
+      if (Math.random() < 0.6) {
         this.peck(actor);
-        return this.later(between([700, 1800]), loop);
+        return this.later(between([1500, 3500]), loop);
       }
-      this.stroll(actor, actor.roam || 2, [2.5, 3.5], () => this.later(between([300, 1500]), loop));
-    };
-    this.later(between([0, 1500]), loop);
-  }
-
-  // Chicks trail the nearest hen, straying a step now and then.
-  private chick(actor: Actor) {
-    const hens = [...this.cast.actors.values()].filter((other) => other.behavior === "hen");
-    const loop = () => {
-      const here = this.gridEngine.getPosition(actor.id);
-      const mother = hens.sort((a, b) => distance(this.gridEngine.getPosition(a.id), here) - distance(this.gridEngine.getPosition(b.id), here))[0];
-      if (!mother) return;
-      this.gridEngine.setSpeed(actor.id, 3);
-      this.gridEngine.follow(actor.id, mother.id, { distance: 1, closestPointIfBlocked: true });
-      this.later(between([6000, 12000]), () => {
-        this.gridEngine.stopMovement(actor.id);
-        this.peck(actor);
-        this.later(between([600, 1500]), loop);
-      });
+      this.stroll(actor, actor.roam || 2, [1.5, 2.5], () => this.later(between([2000, 5000]), loop));
     };
     this.later(between([0, 1500]), loop);
   }
@@ -239,27 +232,25 @@ export class Behaviors {
     const loop = () => {
       const roll = Math.random();
       if (!this.busy(actor)) {
-        if (roll < 0.45) actor.sprite.setFlipX(!actor.sprite.flipX);
+        if (roll < 0.45) turn(actor);
         else if (roll < 0.7) {
-          actor.sprite.setFlipX(!actor.sprite.flipX);
-          this.later(between([500, 900]), () => actor.sprite.setFlipX(!actor.sprite.flipX));
-        } else if (roll < 0.82) this.hop(actor, 1);
+          turn(actor);
+          this.later(between([500, 900]), () => turn(actor));
+        } else if (roll < 0.8) this.hop(actor, 1);
       }
       this.later(between(every), loop);
     };
     this.later(between(every), loop);
   }
 
+  /** A few hammer blows: a tool with a raised frame swaps between the two. */
   private swing(actor: Actor) {
-    if (!actor.held) return;
-    this.scene.tweens.add({
-      targets: actor.held,
-      angle: -35,
-      duration: between([140, 220]),
-      yoyo: true,
-      repeat: between([2, 4]),
-      onComplete: () => actor.held?.setAngle(0),
-    });
+    const held = actor.held;
+    const raised = `${actor.holds}-up`;
+    if (!held || !actor.holds || !this.frames.hasExtra(raised)) return;
+    const frames = [this.frames.extra(raised), this.frames.extra(actor.holds)];
+    const blows = between([2, 4]);
+    for (let i = 0; i < blows * 2; i++) this.later(i * 220, () => held.setFrame(frames[i % 2]));
   }
 
   private hop(actor: Actor, times: number) {
@@ -289,6 +280,8 @@ function between([min, max]: Range): number {
   return Phaser.Math.Between(Math.round(min), Math.round(max));
 }
 
-function distance(a: TilePoint, b: TilePoint): number {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+function turn(actor: Actor) {
+  const flip = !actor.sprite.flipX;
+  actor.sprite.setFlipX(flip);
+  actor.held?.setFlipX(flip);
 }

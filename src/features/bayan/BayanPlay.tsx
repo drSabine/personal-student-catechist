@@ -2,18 +2,23 @@
 
 import { Maximize, Minimize } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useReflections } from "@/features/reflections/useReflections";
 import { readToken } from "@/lib/tokens";
 import type { BayanActivity } from "./BayanActivity";
 import { createGame, type GamePalette } from "./game/createGame";
+import { BuiltCard } from "./overlay/BuiltCard";
+import { ChurchCloseUp } from "./overlay/ChurchCloseUp";
+import { ControlsHint } from "./overlay/ControlsHint";
 import { DialogBox } from "./overlay/DialogBox";
 import { QuestCard } from "./overlay/QuestCard";
 import { SaveBadge } from "./overlay/SaveBadge";
+import { ServeBoard, ServeWriter } from "./overlay/Serve";
 import { SpeechBubbles } from "./overlay/SpeechBubbles";
 import { StageBanner } from "./overlay/StageBanner";
 import { StartScreen } from "./overlay/StartScreen";
 import { TalkButton } from "./overlay/TalkButton";
 import { TeacherPanel } from "./overlay/TeacherPanel";
-import { usePeopleIndex } from "./useBayan";
+import { usePeopleIndex, useSaved, useUi } from "./useBayan";
 
 interface BayanPlayProps {
   activity: BayanActivity;
@@ -34,14 +39,22 @@ export function BayanPlay({ activity, lessonId, fullscreen }: BayanPlayProps) {
   const session = activity.sessionFor(lessonId);
   const { content, assets } = activity;
   const peopleRows = usePeopleIndex(assets.peopleIndex);
+  // Stage 5: the groups' sentences are saved as the lesson's reflections.
+  const lastStage = useSaved(session, (state) => state.progress.stage === 5);
+  const started = useUi(session, (state) => state.started);
+  const serving = lastStage && started;
+  const { entries, save, refresh } = useReflections(lessonId, { list: serving });
+
+  // A reset takes the promises down on the server first, so the board reloads to an empty list.
+  useEffect(() => session.bus.on((event) => event.type === "reset" && refresh()), [session, refresh]);
 
   useEffect(() => {
     const parent = host.current;
     if (!parent) return;
     const palette: GamePalette = {
       confetti: colors("--game-confetti"),
-      butterflies: colors("--game-butterflies"),
-      smoke: colors("--game-smoke")[0] ?? 0,
+      walkable: colors("--game-walkable")[0] ?? 0,
+      blocked: colors("--game-blocked")[0] ?? 0,
     };
     // Strict mode mounts twice: the first game is destroyed here before the second starts.
     const game = createGame(parent, {
@@ -51,6 +64,7 @@ export function BayanPlay({ activity, lessonId, fullscreen }: BayanPlayProps) {
       palette,
       backdrop: readToken("--color-leaf"),
       minTile: Number.parseFloat(readToken("--game-min-tile")),
+      calm: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     });
     return () => {
       // The pupil may come back; nobody should still be marked as near or mid-sentence.
@@ -65,8 +79,9 @@ export function BayanPlay({ activity, lessonId, fullscreen }: BayanPlayProps) {
       <div ref={host} className="absolute inset-0 cursor-pointer" />
       <SpeechBubbles session={session} />
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-game-gap">
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto flex flex-col gap-2">
           <QuestCard session={session} content={content} />
+          {serving && <ServeBoard session={session} content={content} entries={entries} sheet={assets.buildings} />}
         </div>
         <div className="pointer-events-auto flex flex-col items-end gap-2 @lg:flex-row @lg:items-center">
           <SaveBadge session={session} />
@@ -82,8 +97,12 @@ export function BayanPlay({ activity, lessonId, fullscreen }: BayanPlayProps) {
           </button>
         </div>
       </div>
+      <ControlsHint session={session} />
       <TalkButton session={session} content={content} />
-      <DialogBox session={session} content={content} peopleSheet={assets.people} peopleRows={peopleRows} />
+      {serving && <ServeWriter session={session} content={content} save={save} />}
+      <DialogBox session={session} content={content} peopleSheet={assets.people} peopleRows={peopleRows} statue={assets.statue} />
+      <BuiltCard session={session} content={content} sheet={assets.buildings} />
+      <ChurchCloseUp session={session} content={content} sheet={assets.buildings} />
       <StageBanner session={session} content={content} />
       <StartScreen session={session} content={content} fullscreen={fullscreen} />
     </div>

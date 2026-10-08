@@ -13,6 +13,7 @@ const EVENT_SOUNDS: Partial<Record<string, SoundName[]>> = {
   pop: ["pop"],
   talk: ["talk"],
   correct: ["right", "sparkle"],
+  reveal: ["rise", "sparkle"],
   wrong: ["wrong"],
   "stage-complete": ["stage", "cheer"],
 };

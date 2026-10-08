@@ -1,7 +1,7 @@
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import { initialProgress, sanitizeProgress, type BayanProgress } from "./BayanRules";
-import type { Card, Line, LotId } from "./content";
+import type { Card, Line, LotId, QuestionSet } from "./content";
 
 /** What is saved: the class's progress and the teacher's sound choices. */
 export interface SavedState {
@@ -43,8 +43,13 @@ export function createProgressStore(storage?: StateStorage): ProgressStore {
   );
 }
 
-/** One line, question, or card in a conversation. */
-export type Beat = ({ kind: "say" } & Line) | { kind: "ask"; lot: LotId; question: number } | { kind: "card"; card: Card };
+/** One line, question, card, Stage 3 figure, or St. Peter's statue in a conversation. */
+export type Beat =
+  | ({ kind: "say" } & Line)
+  | { kind: "ask"; set: QuestionSet; question: number }
+  | { kind: "card"; card: Card }
+  | { kind: "figure"; index: number }
+  | { kind: "statue" };
 
 export interface Dialog {
   beats: readonly Beat[];
@@ -62,7 +67,11 @@ export type Near =
   | { kind: "leader"; id: string; lot: LotId }
   | { kind: "guide"; id: string }
   | { kind: "townsfolk"; id: string; lot?: LotId }
-  | { kind: "animal"; id: string };
+  | { kind: "figure"; id: string; index: number }
+  | { kind: "plaque"; id: string; index: number }
+  | { kind: "statue"; id: string }
+  | { kind: "door"; id: string }
+  | { kind: "exit"; id: string };
 
 /** A line floating over someone's head, at a point on screen in CSS pixels. */
 export interface Bubble {
@@ -74,22 +83,40 @@ export interface Bubble {
 
 /** What is on screen right now. Never saved. */
 export interface UiState {
-  /** The save has been read, so the town shows the class's progress. */
+  /** The save has been read, so the town shows the class's progress. False for a moment while a jump replaces it. */
   ready: boolean;
   /** The class pressed Start, which also lets the browser play sound. */
   started: boolean;
   dialog: Dialog | null;
   near: Near | null;
   bubbles: readonly Bubble[];
+  /** A building the class just finished, shown on the built card until they carry on. */
+  built: LotId | null;
+  /** Stage 2: the close-up of the church is open. */
+  closeUp: boolean;
+  /** The pupil is inside the church (Stage 3 onward). */
+  inside: boolean;
+  /** Stage 5: a group is writing its sentence. */
+  writing: boolean;
 }
 
 export type UiStore = StoreApi<UiState>;
 
 export function createUiStore(): UiStore {
-  return createStore<UiState>()(() => ({ ready: false, started: false, dialog: null, near: null, bubbles: [] }));
+  return createStore<UiState>()(() => ({
+    ready: false,
+    started: false,
+    dialog: null,
+    near: null,
+    bubbles: [],
+    built: null,
+    closeUp: false,
+    inside: false,
+    writing: false,
+  }));
 }
 
-/** The pupil may not walk while a conversation is open or before the class starts. */
+/** The pupil may not walk while a conversation, a card, or the writing panel is open, or before the class starts. */
 export function isLocked(ui: UiState): boolean {
-  return !ui.started || ui.dialog !== null;
+  return !ui.started || ui.dialog !== null || ui.built !== null || ui.closeUp || ui.writing;
 }

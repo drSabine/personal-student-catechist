@@ -51,6 +51,10 @@
   --container-dialog: 62rem;
   --container-quest: max(14rem, 30cqmin);
   --container-bubble: max(9rem, 26cqmin);
+  --container-banner: max(10rem, 24cqmin);
+  /* The finished building on the built card: its art is 112 by 96 pixels. */
+  --spacing-building: max(12rem, 40cqmin);
+  --spacing-building-thumb: max(2.75rem, 7cqmin);
   --color-leaf: #479f4a;
   --shadow-game: 0 0.4rem 0 color-mix(in srgb, var(--color-ink) 22%, transparent);
   --animate-bob: bob 1.6s ease-in-out infinite;
@@ -92,6 +96,8 @@
   --animate-pop-in: pop-in 360ms var(--ease-soft) both;
   --animate-rise-in: rise-in 900ms var(--ease-soft) both;
   --animate-nudge: nudge 320ms var(--ease-soft);
+  --animate-part-light: part-light 1.4s var(--ease-soft) both;
+  --animate-church-glow: church-glow 1.8s ease-in-out infinite;
 
   /* A brick shakes when it does not fit. */
   @keyframes nudge {
@@ -143,6 +149,29 @@
       transform: none;
     }
   }
+
+  /* Stage 2: a dark part of the church flashes bright, then settles in full color. */
+  @keyframes part-light {
+    from {
+      filter: grayscale(1) brightness(0.4);
+      transform: scale(1);
+    }
+    35% {
+      filter: brightness(2.2);
+      transform: scale(1.04);
+    }
+    to {
+      filter: none;
+      transform: none;
+    }
+  }
+
+  /* Stage 2: the whole church shines once every part is lit. */
+  @keyframes church-glow {
+    50% {
+      filter: drop-shadow(0 0 1rem var(--game-glow)) brightness(1.15);
+    }
+  }
 }
 
 /* Tokens used from component styles rather than as classes. */
@@ -160,8 +189,59 @@
   --game-talk-cooldown-ms: 500;
   /* Art colors for tinted sprites, taken from the pixel art's own palette. */
   --game-confetti: #e84537 #fdbe53 #0099db #84c669 #d176d0;
-  --game-butterflies: #fdbe53 #d176d0 #76e4ff #ffffff;
-  --game-smoke: #c0cbdc;
+  /* The tile outline under the pointer, where the pupil can walk and where they cannot. */
+  --game-walkable: #84c669;
+  --game-blocked: #e84537;
+  /* Stage 2: the church in the close-up, and the light around it once every part is lit. */
+  --spacing-closeup: max(13rem, 44cqmin);
+  --spacing-statue: max(9rem, 34cqmin);
+  --game-glow: #fdbe53;
+}
+
+/* A finished building from the buildings sheet, one cell per lot. Set --cell to its index and --cells to the count. */
+.building-art {
+  width: var(--spacing-building);
+  aspect-ratio: 112 / 96;
+  background-repeat: no-repeat;
+  background-size: 100% calc(100% * var(--cells));
+  background-position: 0 calc(100% * var(--cell) / (var(--cells) - 1));
+  image-rendering: pixelated;
+}
+
+/*
+ * Stage 2's close-up: the church from the buildings sheet, stacked as one layer per part. Each layer
+ * shows only its rows of the art: set --from and --to to how much is cut from the top and the bottom.
+ */
+.church-closeup {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--spacing-closeup);
+  aspect-ratio: 112 / 96;
+}
+
+.church-closeup > .building-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  clip-path: inset(var(--from) 0 var(--to) 0);
+}
+
+/* St. Peter's statue on its card, drawn crisp and tall. */
+.statue-art {
+  height: var(--spacing-statue);
+  aspect-ratio: 16 / 48;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+}
+
+/* A part not answered yet stays dark. */
+.church-part-dark {
+  filter: grayscale(1) brightness(0.4);
+}
+
+/* The same picture, small, beside a group's sentence on the Stage 5 board. */
+.building-thumb {
+  width: var(--spacing-building-thumb);
 }
 
 /* A person from the people sheet, drawn crisp at portrait size. Set --row to their row and --rows to the sheet's rows. */

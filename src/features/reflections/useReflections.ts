@@ -57,6 +57,8 @@ export function useReflections(lessonId: string, { list = false }: Options = {})
     [lessonId],
   );
 
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
+
   const remove = useCallback(async (id: string) => {
     await reflectionRepository.delete(id);
     setVersion((v) => v + 1);
@@ -64,5 +66,5 @@ export function useReflections(lessonId: string, { list = false }: Options = {})
 
   const entries = loaded?.lessonId === lessonId ? loaded.entries : null;
   // A failed refresh keeps the list on screen and tries again; only a first load shows the error.
-  return { entries, error: entries ? null : error, save, remove };
+  return { entries, error: entries ? null : error, save, remove, refresh };
 }
