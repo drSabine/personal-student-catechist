@@ -1,7 +1,7 @@
 import { Activity, type ActivityInit } from "@/core/activity/Activity";
-import { initialProgress, type BayanProgress } from "./BayanRules";
+import { initialProgress, LAST_STAGE, type BayanProgress } from "./BayanRules";
 import type { BayanContent } from "./content";
-import { getBayanSession, type BayanSession } from "./session";
+import { createBayanSession, type BayanSession } from "./session";
 
 export type SoundName =
   | "music"
@@ -16,24 +16,25 @@ export type SoundName =
   | "build"
   | "cheer"
   | "stage"
-  | "door"
-  | "cluck"
-  | "bark"
-  | "meow"
-  | "quack";
+  | "door";
 
 /** Files under public/. Map positions live in the Tiled maps, never in code. */
 export interface BayanAssets {
   townMap: string;
   churchMap: string;
-  tiles: { town: string; dungeon: string; extra: string };
+  tiles: { town: string; extra: string };
   /** Sprite sheet with one row per person: standing, then a step. */
   people: string;
   /** Person name to row in the people sheet. */
   peopleIndex: string;
   /** Name to frame in the extra sheet, for markers, animals, and effects. */
   extraIndex: string;
-  cloud: string;
+  /** The finished buildings, one cell each in lot order, for the built card. */
+  buildings: string;
+  /** The jeepney's two frames. */
+  vehicles: string;
+  /** St. Peter's statue, shown big on its card. */
+  statue: string;
   sounds: Readonly<Record<SoundName, string>>;
 }
 
@@ -62,16 +63,19 @@ export class BayanActivity extends Activity<BayanProgress> {
 
   /** The game's shared state. Browser only. */
   sessionFor(lessonId: string): BayanSession {
-    this.session ??= getBayanSession(lessonId, this.id, this.content);
+    this.session ??= createBayanSession(lessonId, this.id, this.content);
     return this.session;
   }
 
   reset(): void {
-    this.session?.director.reset();
+    this.session?.director.reset().catch(() => {
+      // The promises could not be cleared, so the town was left as it was.
+    });
   }
 
+  /** The class reached the last stage, where the groups write. */
   isComplete(): boolean {
-    return this.session?.saved.getState().progress.closingSeen ?? false;
+    return this.session?.saved.getState().progress.stage === LAST_STAGE;
   }
 
   protected createSnapshot(): BayanProgress {

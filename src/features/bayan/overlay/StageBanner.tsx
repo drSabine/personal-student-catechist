@@ -13,7 +13,7 @@ export function StageBanner({ session, content }: { session: BayanSession; conte
   useEffect(
     () =>
       session.bus.on((event) => {
-        if (event.type === "stage-complete") setStage(session.saved.getState().progress.stage);
+        if (event.type === "stage-complete") setStage(event.stage);
       }),
     [session],
   );

@@ -11,6 +11,7 @@ A small classroom website for Grade 5 Christian Living, shown on an LED TV from 
 - `docs/reflections-storage.md`: how reflections are saved
 - `docs/game-saves.md`: how a game's progress is saved
 - `docs/workflow.md`: branches, commits, checks, releases, and Windows problems
+- `tools/bayan-art/README.md`: the scripts that draw Lesson 02's maps, sprites, and sounds
 
 Keep docs short and stable. Describe how and why, not current values that the code already shows. Update a doc only when a rule or a how-to changes.
 

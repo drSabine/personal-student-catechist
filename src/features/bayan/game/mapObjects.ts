@@ -20,26 +20,19 @@ export interface Person extends TilePoint {
   behavior: string;
 }
 
-/** Something carried: a frame in the town sheet or a name in the extra sheet. */
-export type Held = { sheet: "town"; frame: number } | { sheet: "extra"; frame: string };
-
 export interface Leader extends Person {
   lotId: LotId;
 }
 
 export interface Villager extends Person {
   lotId: LotId;
-  holds: Held;
+  /** A frame in the extra sheet, drawn already in the hand. */
+  holds: string;
 }
 
 export interface Townsfolk extends Person {
   /** How far they wander from home, in tiles. */
   roam: number;
-}
-
-export interface Animal extends Townsfolk {
-  /** Its frame in the extra sheet. */
-  kind: string;
 }
 
 export interface Lot extends TileRect {
@@ -57,14 +50,30 @@ export interface TownObjects {
   /** Where a lot's villagers stand once their building is up. */
   gathers: Record<LotId, TilePoint[]>;
   townsfolk: Townsfolk[];
-  vendor: Person & { holds: Held };
+  vendor: Person & { holds: string };
   /** The vendor's round, in order. */
   route: TilePoint[];
-  animals: Animal[];
-  ponds: (TileRect & { ducks: number })[];
-  meadows: (TileRect & { butterflies: number })[];
-  flag: TilePoint;
-  chimney: TilePoint;
+  animals: Townsfolk[];
+  /** A flag waves over each of these lots once its building stands. */
+  flags: (TilePoint & { lot: LotId })[];
+  /** Stage 4's plaques, by index. */
+  plaques: (TilePoint & { id: string; index: number })[];
+  /** Where the pupil stands to go into the church. */
+  door: TilePoint & { id: string };
+  /** St. Peter's statue, and the tile at its foot where the pupil stands to read it. */
+  statue: TileRect & { id: string };
+
+  /** The road the jeepney drives along, and the tile column where it stops for passengers. */
+  lane: TileRect & { stop: number };
+}
+
+export interface ChurchObjects {
+  /** The room itself; the stone around it fills any spare screen. */
+  view: TileRect;
+  spawn: TilePoint & { id: string };
+  exit: TilePoint & { id: string };
+  /** The leaders of the Church, by their place in line. */
+  figures: (TilePoint & { id: string; index: number })[];
 }
 
 type TiledObject = Phaser.Types.Tilemaps.TiledObject;
@@ -94,15 +103,7 @@ function lotProp(object: TiledObject): LotId {
   return lot;
 }
 
-/** "town:106" or "extra:taho". */
-function heldProp(object: TiledObject): Held {
-  const [sheet, frame] = stringProp(object, "holds").split(":");
-  if (sheet === "town" && frame && Number.isInteger(Number(frame))) return { sheet, frame: Number(frame) };
-  if (sheet === "extra" && frame) return { sheet, frame };
-  throw new Error(`Map object "${object.name}" has an unreadable "holds" property.`);
-}
-
-export class MapReader {
+class MapReader {
   private readonly objects: TiledObject[];
   private readonly size: number;
 
@@ -149,24 +150,40 @@ export function readTownObjects(map: Phaser.Tilemaps.Tilemap): TownObjects {
   for (const object of read.all("gather")) gathers[lotProp(object)].push(read.tile(object));
   const vendor = read.one("vendor");
   const spawn = read.one("spawn");
+  const door = read.one("door");
+  const statue = read.one("statue");
+  const lane = read.one("lane");
   return {
     view: read.rect(read.one("view")),
     spawn: { ...read.tile(spawn), id: spawn.name },
     guide: read.person(read.one("guide")),
     lots: read.all("lot").map((o) => ({ ...read.rect(o), id: lotProp(o) })),
     leaders: read.all("leader").map((o) => ({ ...read.person(o), lotId: lotProp(o) })),
-    villagers: read.all("villager").map((o) => ({ ...read.person(o), lotId: lotProp(o), holds: heldProp(o) })),
+    villagers: read.all("villager").map((o) => ({ ...read.person(o), lotId: lotProp(o), holds: stringProp(o, "holds") })),
     gathers,
     townsfolk: read.all("townsfolk").map((o) => ({ ...read.person(o), roam: numberProp(o, "roam", 0) })),
-    vendor: { ...read.person(vendor), holds: heldProp(vendor) },
+    vendor: { ...read.person(vendor), holds: stringProp(vendor, "holds") },
     route: read
       .all("route")
       .sort((a, b) => numberProp(a, "order") - numberProp(b, "order"))
       .map((o) => read.tile(o)),
-    animals: read.all("animal").map((o) => ({ ...read.person(o), kind: stringProp(o, "kind"), roam: numberProp(o, "roam", 0) })),
-    ponds: read.all("pond").map((o) => ({ ...read.rect(o), ducks: numberProp(o, "ducks", 0) })),
-    meadows: read.all("meadow").map((o) => ({ ...read.rect(o), butterflies: numberProp(o, "butterflies", 0) })),
-    flag: read.tile(read.one("flag")),
-    chimney: read.tile(read.one("smoke")),
+    animals: read.all("animal").map((o) => ({ ...read.person(o), roam: numberProp(o, "roam", 0) })),
+    flags: read.all("flag").map((o) => ({ ...read.tile(o), lot: lotProp(o) })),
+    plaques: read.all("plaque").map((o) => ({ ...read.tile(o), id: o.name, index: numberProp(o, "index") })),
+    door: { ...read.tile(door), id: door.name },
+    statue: { ...read.rect(statue), id: statue.name },
+    lane: { ...read.rect(lane), stop: numberProp(lane, "stop") },
+  };
+}
+
+export function readChurchObjects(map: Phaser.Tilemaps.Tilemap): ChurchObjects {
+  const read = new MapReader(map);
+  const spawn = read.one("spawn");
+  const exit = read.one("exit");
+  return {
+    view: read.rect(read.one("view")),
+    spawn: { ...read.tile(spawn), id: spawn.name },
+    exit: { ...read.tile(exit), id: exit.name },
+    figures: read.all("figure").map((o) => ({ ...read.tile(o), id: o.name, index: numberProp(o, "index") })),
   };
 }

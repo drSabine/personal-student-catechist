@@ -20,10 +20,11 @@ export interface SyncedStorageOptions {
   debounceMs?: number;
   /** Try again this long after a failed send. */
   retryMs?: number;
-  /** Give up on the server's copy at start after this long, and use this device's. */
-  loadTimeoutMs?: number;
   now?: () => number;
 }
+
+/** Give up on the server's copy at start after this long, and use this device's. */
+const LOAD_TIMEOUT_MS = 5000;
 
 /**
  * Saves a game's state on this device at once and on the server soon after, so a refresh,
@@ -36,7 +37,6 @@ export class SyncedStorage extends Observable<SaveStatus> {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly debounceMs: number;
   private readonly retryMs: number;
-  private readonly loadTimeoutMs: number;
   private readonly now: () => number;
 
   constructor(
@@ -48,7 +48,6 @@ export class SyncedStorage extends Observable<SaveStatus> {
     super();
     this.debounceMs = options.debounceMs ?? 400;
     this.retryMs = options.retryMs ?? 5000;
-    this.loadTimeoutMs = options.loadTimeoutMs ?? 5000;
     this.now = options.now ?? Date.now;
   }
 
@@ -62,7 +61,7 @@ export class SyncedStorage extends Observable<SaveStatus> {
     let remote: GameSave | null = null;
     let reached = false;
     try {
-      remote = await withTimeout(this.repository.load(this.slot), this.loadTimeoutMs);
+      remote = await withTimeout(this.repository.load(this.slot), LOAD_TIMEOUT_MS);
       reached = true;
     } catch {
       // Offline or slow: this device's copy is used, and sent once the server answers.
@@ -98,11 +97,6 @@ export class SyncedStorage extends Observable<SaveStatus> {
     const save = this.pending;
     this.clearTimer();
     void this.repository.save(this.slot, save, { keepalive: true }).catch(() => undefined);
-  }
-
-  dispose(): void {
-    this.flush();
-    this.clearTimer();
   }
 
   protected createSnapshot(): SaveStatus {

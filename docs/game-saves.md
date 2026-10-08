@@ -14,6 +14,10 @@ store (zustand persist) -> SyncedStorage -> HttpSaveRepository -> /api/saves/[le
 - A save is checked twice before it is trusted: `readSave` on the server refuses anything that is not a small save, and the game reads the state through its own `sanitizeProgress`.
 - Without Redis settings, `npm run dev` keeps saves in memory. With a `.env`, the dev server uses the real Redis, so reset the town after testing.
 
+## Changing what a game saves
+
+Add the field to the progress type and give it a default in `sanitizeProgress`. Older saves then load with the default, so there is no need to bump the save version. When a field's range shrinks, clamp old values instead of dropping them, so a class never loses what it finished.
+
 ## Adding saves to another activity
 
 Make its store with `persist` and a `StateStorage` that calls a `SyncedStorage`, as `features/bayan/session.ts` does. The API accepts any activity that exists in a lesson.
