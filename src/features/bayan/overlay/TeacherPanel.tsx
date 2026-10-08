@@ -2,8 +2,11 @@
 
 import { Music, RotateCcw, Settings, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { LAST_STAGE, type Stage } from "../BayanRules";
 import type { BayanSession } from "../session";
 import { useSaved } from "../useBayan";
+
+const STAGES: readonly Stage[] = [1, 2, 3, 4, 5];
 
 function Toggle({ label, on, onChange, icon }: { label: string; on: boolean; onChange: () => void; icon: ReactNode }) {
   return (
@@ -25,12 +28,16 @@ function Toggle({ label, on, onChange, icon }: { label: string; on: boolean; onC
   );
 }
 
-/** A small corner panel for the teacher: sound switches, the opening again, and reset. */
+type Confirm = "stage" | "town";
+
+/** A small corner panel for the teacher: sound switches, stage jumps, the opening again, and resets. */
 export function TeacherPanel({ session }: { session: BayanSession }) {
   const [open, setOpen] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState<Confirm | null>(null);
+  const [failed, setFailed] = useState(false);
   const music = useSaved(session, (state) => state.music);
   const sounds = useSaved(session, (state) => state.sounds);
+  const stage = useSaved(session, (state) => state.progress.stage);
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +50,21 @@ export function TeacherPanel({ session }: { session: BayanSession }) {
 
   const close = () => {
     setOpen(false);
-    setConfirming(false);
+    setConfirming(null);
+    setFailed(false);
+  };
+
+  /** Asks twice, then resets. If the promises cannot be cleared the panel stays open to try again. */
+  const reset = (kind: Confirm) => {
+    if (confirming !== kind) {
+      setFailed(false);
+      return setConfirming(kind);
+    }
+    const done = kind === "stage" ? session.director.resetStage() : session.director.reset();
+    done.then(close, () => {
+      setConfirming(null);
+      setFailed(true);
+    });
   };
 
   return (
@@ -73,6 +94,36 @@ export function TeacherPanel({ session }: { session: BayanSession }) {
             onChange={() => session.saved.setState({ sounds: !sounds })}
             icon={sounds ? <Volume2 aria-hidden className="size-4" /> : <VolumeX aria-hidden className="size-4" />}
           />
+          <p className="px-3 pb-1 pt-2 text-xs uppercase tracking-label text-muted">Go to stage</p>
+          <div className="grid grid-cols-5 gap-1 px-1">
+            {STAGES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={s === stage}
+                aria-label={`Go to stage ${s}`}
+                onClick={() => {
+                  close();
+                  session.director.goToStage(s);
+                }}
+                className={`min-h-11 rounded-xl text-sm font-medium ${s === stage ? "bg-ink text-paper" : "hover:bg-wash"}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          {stage < LAST_STAGE && (
+            <button
+              type="button"
+              onClick={() => {
+                close();
+                session.director.goToStage((stage + 1) as Stage);
+              }}
+              className="flex min-h-11 items-center rounded-xl px-3 text-left text-sm hover:bg-wash"
+            >
+              Next stage
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -85,18 +136,29 @@ export function TeacherPanel({ session }: { session: BayanSession }) {
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (!confirming) return setConfirming(true);
-              close();
-              session.director.reset();
-            }}
+            onClick={() => reset("stage")}
             className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-sm ${
-              confirming ? "bg-coral text-ink" : "hover:bg-wash"
+              confirming === "stage" ? "bg-coral text-ink" : "hover:bg-wash"
             }`}
           >
             <RotateCcw aria-hidden className="size-4" />
-            {confirming ? "Tap again to empty the town" : "Reset the town"}
+            {confirming === "stage" ? "Tap again to restart the stage" : "Restart this stage"}
           </button>
+          <button
+            type="button"
+            onClick={() => reset("town")}
+            className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-left text-sm ${
+              confirming === "town" ? "bg-coral text-ink" : "hover:bg-wash"
+            }`}
+          >
+            <RotateCcw aria-hidden className="size-4" />
+            {confirming === "town" ? "Tap again to empty the town" : "Reset the town"}
+          </button>
+          {failed && (
+            <p role="alert" className="px-3 pb-1 text-xs font-medium">
+              Could not clear the promises. Try again.
+            </p>
+          )}
         </div>
       )}
     </div>

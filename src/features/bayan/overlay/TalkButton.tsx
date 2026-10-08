@@ -1,16 +1,31 @@
 "use client";
 
-import { Hand, MessageCircle } from "lucide-react";
+import { DoorOpen, MessageCircle, ScrollText } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import type { BayanContent } from "../content";
 import type { BayanSession } from "../session";
 import { isLocked, type Near } from "../stores";
 import { useNumberToken, useUi } from "../useBayan";
+import { bigButton } from "./styles";
 
 const TALK_KEYS = ["Enter", " ", "e", "E"];
 
-function nameOf(near: Near, content: BayanContent): string {
-  return content.people[near.id]?.name ?? near.id;
+/** What the button says, and its icon, for whatever the pupil is next to. */
+function labelOf(near: Near, content: BayanContent) {
+  switch (near.kind) {
+    case "figure":
+      return { text: `Meet ${content.figures[near.index]?.title ?? near.id}`, Icon: MessageCircle };
+    case "plaque":
+      return { text: `Read plaque ${near.index + 1}`, Icon: ScrollText };
+    case "statue":
+      return { text: "Read the statue", Icon: ScrollText };
+    case "door":
+      return { text: "Go inside", Icon: DoorOpen };
+    case "exit":
+      return { text: "Go outside", Icon: DoorOpen };
+    default:
+      return { text: `Talk to ${content.people[near.id]?.name ?? near.id}`, Icon: MessageCircle };
+  }
 }
 
 /** Big and bobbing, so pupils see it from across the room. Enter, Space, or E also works. */
@@ -42,17 +57,16 @@ export function TalkButton({ session, content }: { session: BayanSession; conten
   }, [show, talk, coolMs]);
 
   if (!show || !near) return null;
-  const pet = near.kind === "animal";
-  const Icon = pet ? Hand : MessageCircle;
+  const { text, Icon } = labelOf(near, content);
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center p-game-gap">
       <button
         type="button"
         onClick={talk}
-        className="pointer-events-auto inline-flex min-h-11 animate-bob items-center gap-3 rounded-full border-2 border-ink bg-gold px-6 py-3 text-game font-medium text-ink shadow-game"
+        className={`pointer-events-auto animate-bob ${bigButton}`}
       >
         <Icon aria-hidden className="size-6" />
-        {pet ? `Pet ${nameOf(near, content)}` : `Talk to ${nameOf(near, content)}`}
+        {text}
         <kbd className="hidden rounded-md border border-ink/30 px-2 text-game-small md:inline">Enter</kbd>
       </button>
     </div>

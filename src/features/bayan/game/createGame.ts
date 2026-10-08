@@ -3,13 +3,15 @@ import * as Phaser from "phaser";
 import type { BayanAssets } from "../BayanActivity";
 import type { BayanContent } from "../content";
 import type { BayanSession } from "../session";
+import { ChurchScene } from "./ChurchScene";
 import { TownScene } from "./TownScene";
 
 /** Art colors for tinted sprites, read from the design tokens. */
 export interface GamePalette {
   confetti: readonly number[];
-  butterflies: readonly number[];
-  smoke: number;
+  /** The tile outline where the pupil can walk, and the X where they cannot. */
+  walkable: number;
+  blocked: number;
 }
 
 /** What the scenes are given. They reach React only through the session's stores and bus. */
@@ -22,6 +24,8 @@ export interface GameDeps {
   backdrop: string;
   /** Smallest a tile may look on screen, in CSS pixels, before the camera follows the pupil instead. */
   minTile: number;
+  /** The viewer asked for reduced motion: the jeepney stays parked. */
+  calm: boolean;
 }
 
 let audioContext: AudioContext | null = null;
@@ -45,7 +49,8 @@ export function createGame(parent: HTMLElement, deps: GameDeps): Phaser.Game {
     // Sized by hand below, so the canvas matches the screen's real pixels.
     scale: { mode: Phaser.Scale.NONE, width: 1, height: 1 },
     plugins: { scene: [{ key: "gridEngine", plugin: GridEngine, mapping: "gridEngine" }] },
-    scene: [new TownScene(deps)],
+    // The town opens first and loads both scenes' files.
+    scene: [new TownScene(deps), new ChurchScene(deps)],
   });
 
   // Draw at device pixels and show at CSS size, so pixel art stays sharp on any screen.

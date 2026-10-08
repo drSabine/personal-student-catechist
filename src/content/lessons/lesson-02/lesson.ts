@@ -11,8 +11,9 @@ export const lesson02 = new Lesson({
   number: 2,
   title: "The Church Is Guided by Jesus Christ's Chosen Leaders",
   theme: "Jesus Christ chose leaders to guide His Church, and every community has leaders who help us grow.",
-  reflectionPrompt: "TODO reflection question for Lesson 02",
-  reflectionStarters: [],
+  // Draft for the teacher to review.
+  reflectionPrompt: "Who is a leader who guides you, and how can you help them?",
+  reflectionStarters: ["A leader who guides me is", "I can help my leaders by", "I will pray for"],
   activities: [
     new BayanActivity({
       id: "build-our-bayan",
@@ -22,11 +23,13 @@ export const lesson02 = new Lesson({
       assets: {
         townMap: `${dir}/maps/town.json`,
         churchMap: `${dir}/maps/church.json`,
-        tiles: { town: `${dir}/tiles/town.png`, dungeon: `${dir}/tiles/dungeon.png`, extra: `${dir}/tiles/extra.png` },
+        tiles: { town: `${dir}/tiles/town.png`, extra: `${dir}/tiles/extra.png` },
         people: `${dir}/sprites/people.png`,
         peopleIndex: `${dir}/sprites/people.json`,
         extraIndex: `${dir}/sprites/extra.json`,
-        cloud: `${dir}/sprites/cloud.png`,
+        buildings: `${dir}/sprites/buildings.png`,
+        vehicles: `${dir}/sprites/vehicles.png`,
+        statue: `${dir}/sprites/statue.png`,
         sounds: {
           music: sound("town-loop.wav"),
           talk: sound("talk.ogg"),
@@ -41,10 +44,6 @@ export const lesson02 = new Lesson({
           cheer: sound("cheer.wav"),
           stage: sound("stage.ogg"),
           door: sound("door.ogg"),
-          cluck: sound("cluck.wav"),
-          bark: sound("bark.wav"),
-          meow: sound("meow.wav"),
-          quack: sound("quack.wav"),
         },
       },
     }),

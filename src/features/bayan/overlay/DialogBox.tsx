@@ -1,18 +1,21 @@
 "use client";
 
 import { Check, ChevronRight, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { isTodo, type BayanContent, type Card } from "../content";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { isTodo, questionIn, type BayanContent, type Card } from "../content";
 import type { BayanSession } from "../session";
 import type { Dialog } from "../stores";
 import { useNumberToken, useUi } from "../useBayan";
 import { Portrait } from "./Portrait";
+import { actionButton, panel } from "./styles";
 
 interface DialogBoxProps {
   session: BayanSession;
   content: BayanContent;
   peopleSheet: string;
   peopleRows: Record<string, number> | null;
+  /** St. Peter's statue, for its card. */
+  statue: string;
 }
 
 /**
@@ -25,9 +28,6 @@ function ownKey(event: KeyboardEvent, box: HTMLElement | null): boolean {
   return !(target instanceof Node && box?.contains(target) && target instanceof HTMLButtonElement);
 }
 
-const actionButton =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-ink bg-gold px-6 py-2 text-game-small font-semibold text-ink shadow-game hover:bg-gold/85";
-
 /** The conversation at the bottom of the screen: who speaks, what they say, and any question. */
 export function DialogBox(props: DialogBoxProps) {
   const dialog = useUi(props.session, (state) => state.dialog);
@@ -36,6 +36,12 @@ export function DialogBox(props: DialogBoxProps) {
   // A new key per beat starts its typing afresh. Lines added after an answer must not restart the question.
   const key = `${dialog.index}:${JSON.stringify(beat)}`;
   if (beat.kind === "card") return <StoryCard key={key} session={props.session} card={beat.card} last={isLast(dialog)} />;
+  if (beat.kind === "statue") {
+    return <StoryCard key={key} session={props.session} card={props.content.peter} art={props.statue} last={isLast(dialog)} />;
+  }
+  if (beat.kind === "figure") {
+    return <FigureCard key={key} {...props} index={beat.index} last={isLast(dialog)} />;
+  }
   return <Conversation key={key} {...props} dialog={dialog} />;
 }
 
@@ -45,7 +51,7 @@ function isLast(dialog: Dialog): boolean {
 
 function Conversation({ session, content, dialog, peopleSheet, peopleRows }: DialogBoxProps & { dialog: Dialog }) {
   const beat = dialog.beats[dialog.index];
-  const question = beat.kind === "ask" ? content.lots[beat.lot].questions[beat.question] : null;
+  const question = beat.kind === "ask" ? questionIn(content, beat.set, beat.question) : null;
   const speaker = beat.kind === "say" ? beat.speaker : (question?.speaker ?? "");
   const text = beat.kind === "say" ? beat.text : (question?.prompt ?? "");
   const letterMs = useNumberToken("--game-letter-ms", 26);
@@ -116,13 +122,13 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
         className="pointer-events-auto relative flex w-full max-w-dialog animate-pop-in flex-col items-start outline-none"
       >
         {/* The name plate, big enough to read from the back of the room. */}
-        <p className="pixel rounded-t-xl border-[3px] border-b-0 border-ink bg-ink px-5 pb-1 pt-1.5 text-game-name lowercase text-paper">
+        <p className="pixel rounded-t-xl border-3 border-b-0 border-ink bg-ink px-5 pb-1 pt-1.5 text-game-name lowercase text-paper">
           {name}
         </p>
-        <div className="flex w-full flex-col gap-game-gap rounded-2xl rounded-tl-none border-[3px] border-ink bg-paper p-game-gap shadow-game">
+        <div className="flex w-full flex-col gap-game-gap rounded-2xl rounded-tl-none border-3 border-ink bg-paper p-game-gap shadow-game">
           <div className="flex items-start gap-game-gap">
             {person && (
-              <div className="shrink-0 rounded-xl border-[3px] border-ink bg-wash p-1">
+              <div className="shrink-0 rounded-xl border-3 border-ink bg-wash p-1">
                 <Portrait sheet={peopleSheet} rows={peopleRows} sprite={person.sprite} />
               </div>
             )}
@@ -144,12 +150,12 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
                   const tried = dialog.tried.includes(i);
                   const right = dialog.solved === i;
                   return (
-                    <li key={choice}>
+                    <li key={choice.text}>
                       <button
                         type="button"
                         disabled={tried || solved}
                         onClick={() => director.choose(i)}
-                        className={`flex size-full min-h-11 items-center gap-3 rounded-xl border-[3px] px-4 py-3 text-left text-game-choice font-medium transition-colors ${
+                        className={`flex size-full min-h-11 items-center gap-3 rounded-xl border-3 px-4 py-3 text-left text-game-choice font-medium transition-colors ${
                           right
                             ? "border-leaf bg-leaf text-paper"
                             : tried
@@ -165,7 +171,7 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
                         >
                           {right ? <Check className="size-5" strokeWidth={3} /> : i + 1}
                         </span>
-                        <span>{choice}</span>
+                        <span>{choice.text}</span>
                       </button>
                     </li>
                   );
@@ -175,7 +181,7 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
                 <div key={dialog.tried.length} role="alert" className="flex w-full animate-shake items-start gap-3">
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-ink bg-coral px-3 py-1 text-game-small font-bold text-ink">
                     <RotateCcw aria-hidden className="size-4" strokeWidth={3} />
-                    {content.feedback.tryAgain}
+                    Try again
                   </span>
                   <p className="text-game-small font-medium text-ink">
                     <span className="pixel lowercase">{content.people[hint.speaker]?.name ?? hint.speaker}: </span>
@@ -198,10 +204,10 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
         {solved && (
           <p
             role="status"
-            className="pointer-events-none absolute inset-x-0 top-0 mx-auto flex w-max -translate-y-1/2 animate-pop-in items-center gap-2 rounded-full border-[3px] border-ink bg-leaf px-6 py-2 text-game-title font-bold text-paper shadow-game"
+            className="pointer-events-none absolute inset-x-0 top-0 mx-auto flex w-max -translate-y-1/2 animate-pop-in items-center gap-2 rounded-full border-3 border-ink bg-leaf px-6 py-2 text-game-title font-bold text-paper shadow-game"
           >
             <Check aria-hidden className="size-8" strokeWidth={3.5} />
-            {content.feedback.right}
+            That&apos;s right!
           </p>
         )}
       </section>
@@ -209,9 +215,9 @@ function Conversation({ session, content, dialog, peopleSheet, peopleRows }: Dia
   );
 }
 
-function StoryCard({ session, card, last }: { session: BayanSession; card: Card; last: boolean }) {
+/** Enter or Space moves a card on, unless a control of its own has the key. */
+function useCardKeys(session: BayanSession, box: RefObject<HTMLElement | null>) {
   const { director } = session;
-  const box = useRef<HTMLElement>(null);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (!ownKey(event, box.current)) return;
@@ -222,7 +228,14 @@ function StoryCard({ session, card, last }: { session: BayanSession; card: Card;
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [director]);
+  }, [director, box]);
+}
+
+/** A card read aloud: a title, its words, and with `art`, a picture beside them. */
+function StoryCard({ session, card, art, last }: { session: BayanSession; card: Card; art?: string; last: boolean }) {
+  const { director } = session;
+  const box = useRef<HTMLElement>(null);
+  useCardKeys(session, box);
 
   const todo = isTodo(card.body);
   return (
@@ -231,15 +244,57 @@ function StoryCard({ session, card, last }: { session: BayanSession; card: Card;
         ref={box}
         role="dialog"
         aria-label={card.title}
-        className="flex w-full max-w-dialog animate-pop-in flex-col gap-game-gap rounded-2xl border-[3px] border-ink bg-paper p-game-gap shadow-game"
+        className={`flex w-full max-w-dialog animate-pop-in items-center gap-game-gap ${panel}`}
       >
-        <h2 className="pixel text-game-title lowercase">{card.title}</h2>
-        <p className={`text-game ${todo ? "italic text-muted" : "font-medium"}`}>{todo ? "To be added by the teacher." : card.body}</p>
-        <div className="flex justify-end">
-          <button type="button" autoFocus onClick={() => director.next()} className={actionButton}>
-            {last ? "Continue" : "Next"}
-            <ChevronRight aria-hidden className="size-5" strokeWidth={3} />
-          </button>
+        {art && <div aria-hidden className="statue-art shrink-0" style={{ backgroundImage: `url(${art})` }} />}
+        <div className="flex min-w-0 flex-1 flex-col gap-game-gap">
+          <h2 className="pixel text-game-title lowercase">{card.title}</h2>
+          <p className={`text-game ${todo ? "italic text-muted" : "font-medium"}`}>{todo ? "To be added by the teacher." : card.body}</p>
+          <div className="flex justify-end">
+            <button type="button" autoFocus onClick={() => director.next()} className={actionButton}>
+              {last ? "Continue" : "Next"}
+              <ChevronRight aria-hidden className="size-5" strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/** Stage 3: one of the Church's leaders, with who they are and what they do. */
+function FigureCard({ session, content, peopleSheet, peopleRows, index, last }: DialogBoxProps & { index: number; last: boolean }) {
+  const { director } = session;
+  const box = useRef<HTMLElement>(null);
+  useCardKeys(session, box);
+  const figure = content.figures[index];
+  if (!figure) return null;
+  const name = figure.name && !isTodo(figure.name) ? figure.name : null;
+
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center p-game-gap">
+      <section
+        ref={box}
+        role="dialog"
+        aria-label={figure.title}
+        className={`pointer-events-auto flex w-full max-w-dialog animate-pop-in items-start gap-game-gap ${panel}`}
+      >
+        <div className="shrink-0 rounded-xl border-3 border-ink bg-wash p-1">
+          <Portrait sheet={peopleSheet} rows={peopleRows} sprite={figure.sprite} />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <p className="text-game-small uppercase tracking-label text-muted">
+            {index + 1} of {content.figures.length}
+          </p>
+          <h2 className="pixel text-game-title lowercase">{figure.title}</h2>
+          {name && <p className="text-game font-semibold">{name}</p>}
+          <p className="text-game font-medium">{figure.role}</p>
+          <div className="flex justify-end">
+            <button type="button" autoFocus onClick={() => director.next()} className={actionButton}>
+              {last ? "Close" : "Next"}
+              <ChevronRight aria-hidden className="size-5" strokeWidth={3} />
+            </button>
+          </div>
         </div>
       </section>
     </div>

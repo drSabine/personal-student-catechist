@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Build Our Bayan art: downloaded packs and previews
+tools/bayan-art/kenney/
+tools/bayan-art/preview/
+tools/bayan-art/__pycache__/
