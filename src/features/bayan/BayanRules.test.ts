@@ -87,7 +87,12 @@ describe("buildings", () => {
   });
 
   it("has every building standing in Stage 2", () => {
-    expect(visibleBuildingLayers(jumpTo(initialProgress(), 2))).toEqual(["house-built", "school-built", "hall-built", "church-built"]);
+    expect(visibleBuildingLayers(jumpTo(initialProgress(), 2))).toEqual([
+      "house-built",
+      "school-built",
+      "hall-built",
+      "church-built",
+    ]);
   });
 });
 
@@ -150,7 +155,14 @@ describe("Stages 3 and 4: in order", () => {
 describe("moving between stages", () => {
   it("fills in every earlier stage, so the town matches the stage", () => {
     const progress = jumpTo(initialProgress(), 4);
-    expect(progress).toMatchObject({ stage: 4, revealed: REVEAL_STEPS, verseSeen: true, peterSeen: true, figuresMet: FIGURE_COUNT, plaquesOpen: 0 });
+    expect(progress).toMatchObject({
+      stage: 4,
+      revealed: REVEAL_STEPS,
+      verseSeen: true,
+      peterSeen: true,
+      figuresMet: FIGURE_COUNT,
+      plaquesOpen: 0,
+    });
     expect(allLeadersFound(progress)).toBe(true);
   });
 
@@ -178,7 +190,13 @@ describe("sanitizeProgress", () => {
   });
 
   it("keeps a lot finished in an older save that asked four questions", () => {
-    const old = { stage: 1, answered: { house: 4, school: 2, hall: 0, church: 0 }, church: 0, openingSeen: true, closingSeen: false };
+    const old = {
+      stage: 1,
+      answered: { house: 4, school: 2, hall: 0, church: 0 },
+      church: 0,
+      openingSeen: true,
+      closingSeen: false,
+    };
     expect(sanitizeProgress(old).answered).toEqual({ house: 3, school: 2, hall: 0, church: 0 });
   });
 
@@ -188,6 +206,8 @@ describe("sanitizeProgress", () => {
 
   it("falls back to the start for anything damaged", () => {
     expect(sanitizeProgress(null)).toEqual(initialProgress());
-    expect(sanitizeProgress({ stage: 9, answered: { house: -1 }, revealed: 8, peterSeen: "yes", figuresMet: 40 })).toEqual(initialProgress());
+    expect(sanitizeProgress({ stage: 9, answered: { house: -1 }, revealed: 8, peterSeen: "yes", figuresMet: 40 })).toEqual(
+      initialProgress(),
+    );
   });
 });
