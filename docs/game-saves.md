@@ -20,7 +20,7 @@ Add the field to the progress type and give it a default in `sanitizeProgress`. 
 
 ## Adding saves to another activity
 
-Make its store with `persist` and a `StateStorage` that calls a `SyncedStorage`, as `features/bayan/session.ts` does. The API accepts any activity that exists in a lesson.
+Make its store with `persist` and a `StateStorage` that calls a `SyncedStorage`, as `features/bayan/session.ts` does, or extend `StoryActivity` in `features/storybook/`, which does this for a game with one progress value and a sound switch. The API accepts any activity that exists in a lesson.
 
 ## Privacy
 

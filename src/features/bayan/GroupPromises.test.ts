@@ -17,6 +17,8 @@ describe("GroupPromises", () => {
   });
 
   it("does nothing when there are no promises", async () => {
-    await expect(new GroupPromises(new InMemoryReflectionRepository(), "lesson-02", ["Family group"]).clear()).resolves.toBeUndefined();
+    await expect(
+      new GroupPromises(new InMemoryReflectionRepository(), "lesson-02", ["Family group"]).clear(),
+    ).resolves.toBeUndefined();
   });
 });

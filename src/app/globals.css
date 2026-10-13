@@ -67,6 +67,48 @@
     }
   }
 
+  /* Lesson 03, the paper storybook. Sized from the game area (a size container), like Build Our Bayan. */
+  /* 28px or more at 1366 by 768, so the main lines read from the back of a room. */
+  --text-story: max(1.125rem, 4.6cqmin);
+  --text-story--line-height: 1.25;
+  --text-story-small: max(0.9375rem, 3cqmin);
+  --text-story-small--line-height: 1.25;
+  --text-story-title: max(1.5rem, 7cqmin);
+  --text-story-title--line-height: 1.1;
+  --text-story-hero: max(2.25rem, 12cqmin);
+  --text-story-hero--line-height: 1;
+  --spacing-story-gap: max(0.5rem, 1.8cqmin);
+  /* Big enough to hit while standing beside the TV. */
+  --spacing-story-button: max(2.75rem, 11cqmin);
+  --radius-story: 1.25rem;
+  --spacing-strip-token: max(2.5rem, 10cqmin);
+  /* The cast on a game's cover, the stars and pips of progress, and Gift Quest's badges. */
+  --spacing-start-token: max(3.5rem, 15cqmin);
+  --spacing-progress: max(1.25rem, 4.5cqmin);
+  --spacing-pip: max(0.75rem, 2.2cqmin);
+  --spacing-badge: max(2rem, 7cqmin);
+  --container-story-card: 44rem;
+  /* Room for the teacher panel and full screen buttons in the top corner. */
+  --spacing-corner: 7.5rem;
+  --spacing-corner-top: 3.75rem;
+  /* Lesson 03's sizes inside a scene, from the scene's width. */
+  --spacing-scene-token: max(2.75rem, 8cqw);
+  --spacing-tag: 15cqw;
+  --text-tag: max(0.625rem, 1.6cqw);
+  /* Stage 2: a letter box or tile, the 2 by 2 clue grid, and the picture beside them on a wide screen. */
+  --spacing-letter: max(2rem, min(8cqmin, 10cqw));
+  /* Letter tiles are tapped, so they never go under 44px. */
+  --spacing-tile: max(2.75rem, 8cqmin);
+  --spacing-clues: min(72cqw, 34cqh);
+  --spacing-clues-wide: min(40cqh, 26cqw);
+  --spacing-puzzle: 50cqw;
+  /* The team column beside the scene on a wide screen. */
+  --spacing-strip: 21cqw;
+  /* Cut paper casts a short, soft shadow. */
+  --shadow-story: 0.15rem 0.3rem 0 color-mix(in srgb, var(--color-ink) 25%, transparent);
+  /* The cork-colored board the scenes are pinned to. */
+  --color-board: #e9dcc3;
+
   --tracking-label: 0.14em;
 
   /* Layout sizes */
@@ -174,6 +216,12 @@
   }
 }
 
+/* Lesson 03's fonts are set on its game root only, so the classes use them directly instead of reading them at :root. */
+@theme inline {
+  --font-story: var(--nf-baloo), system-ui, sans-serif;
+  --font-story-body: var(--nf-atkinson), system-ui, sans-serif;
+}
+
 /* Tokens used from component styles rather than as classes. */
 :root {
   --duration-quick: 200ms;
@@ -196,6 +244,102 @@
   --spacing-closeup: max(13rem, 44cqmin);
   --spacing-statue: max(9rem, 34cqmin);
   --game-glow: #fdbe53;
+
+  /* Lesson 03's timings, in milliseconds: hopping to a job, working, the short gap between workers
+     finishing, the pause before the card, a worried face, and Marco's welcome before the first scene. */
+  --story-hop-ms: 700;
+  --story-work-ms: 2500;
+  --story-stagger-ms: 250;
+  --story-pause-ms: 900;
+  --story-concerned-ms: 1000;
+  --story-opening-ms: 4500;
+  /* Motion durations and delays, in seconds for the storybook animations. */
+  --story-piece-seconds: 1;
+  --story-notes-seconds: 2;
+  --story-cover-seconds: 6;
+  --story-fly-seconds: 18;
+  --story-drift-seconds: 28;
+  --story-spin-seconds: 40;
+  --story-quick-seconds: 0.2;
+  --story-settle-seconds: 0.3;
+  --story-fade-seconds: 0.4;
+  --story-shake-seconds: 0.45;
+  --story-cheer-seconds: 0.5;
+  --story-work-bob-seconds: 0.6;
+  --story-selected-seconds: 0.7;
+  --story-burst-seconds: 0.75;
+  --story-invite-seconds: 0.9;
+  --story-pulse-seconds: 1.2;
+  --story-melt-seconds: 1.6;
+  --story-bob-seconds: 1.8;
+  --story-idle-seconds: 2.4;
+  --story-swing-seconds: 2.8;
+  --story-sway-seconds: 3.4;
+  --story-bird-pause-seconds: 6;
+  --story-letter-stagger-seconds: 0.06;
+  --story-cover-stagger-seconds: 0.08;
+  --story-clue-stagger-seconds: 0.1;
+  --story-choice-stagger-seconds: 0.12;
+  --story-bob-stagger-seconds: 0.2;
+  --story-idle-stagger-seconds: 0.3;
+  --story-ambient-stagger-seconds: 0.4;
+  --story-note-stagger-seconds: 0.6;
+  --story-piece-reveal-seconds: 0.8;
+  --story-piece-burst-seconds: 0.9;
+
+  /* Lesson 03: each gift's color, shared by a person's shirt, badge, card, and job tags. */
+  --gift-hands: #e8735a;
+  --gift-building: #f2b33d;
+  --gift-drawing: #a48ad6;
+  --gift-singing: #56a8de;
+  --gift-tidying: #62b47f;
+  --gift-teaching: #45a3a0;
+  --gift-praying: #ee98b6;
+  --gift-leader: #4d78c4;
+
+  /* Lesson 03: Open Peeps skin, set on each person so one drawn face serves everyone. */
+  --peep-skin-light: #edb98a;
+  --peep-skin-tan: #d08b5b;
+  --peep-skin-brown: #ae5d29;
+
+  /* Lesson 03's paper colors. Every scene and picture is cut from these, so the whole lesson matches. */
+  --paper-white: #fffdf8;
+  --paper-sky: #bfe0ec;
+  --paper-cloud: #fbf7ee;
+  --paper-sun: #f6c64f;
+  --paper-grass: #94c96f;
+  --paper-grass-dark: #64a352;
+  --paper-leaf: #4f9a52;
+  --paper-leaf-dark: #357a43;
+  --paper-trunk: #8a5a3b;
+  --paper-path: #e6d3ab;
+  --paper-soil: #7a5236;
+  --paper-clay: #d8774f;
+  --paper-cream: #f6ecd6;
+  --paper-mint: #c4e5d3;
+  --paper-roof: #c4523f;
+  --paper-wood: #c58f58;
+  --paper-wood-dark: #8e5c34;
+  --paper-capiz: #fff4d6;
+  --paper-frame: #6d4a30;
+  --paper-stone: #d9d2c4;
+  --paper-stone-dark: #a89f8f;
+  --paper-flag-blue: #2f4fa3;
+  --paper-flag-red: #d33c37;
+  --paper-flag-yellow: #f7cc3c;
+  --paper-chalkboard: #3a6455;
+  --paper-chalk: #f4f1e8;
+  --paper-church: #f1e2c3;
+  --paper-glass: #9cc8e6;
+  --paper-glass-warm: #f2b65d;
+  --paper-gold: #d9a63c;
+  --paper-pink: #ef8aa8;
+  --paper-red: #e0574f;
+  --paper-dust: #b5a990;
+  --paper-skin: var(--peep-skin-tan);
+  --paper-grain: color-mix(in srgb, var(--color-ink) 9%, transparent);
+  /* Cut paper's soft shadow, for static layers only. */
+  --paper-shadow: color-mix(in srgb, var(--color-ink) 30%, transparent);
 }
 
 /* A finished building from the buildings sheet, one cell per lot. Set --cell to its index and --cells to the count. */
@@ -259,6 +403,9 @@
     --reveal-delay: 0ms;
     --reveal-duration: 500ms;
     --question-delay: 400ms;
+    --story-hop-ms: 0;
+    --story-work-ms: 0;
+    --story-stagger-ms: 0;
   }
 
   *,

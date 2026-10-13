@@ -25,6 +25,14 @@ The menu shows the new lesson, and the home address opens the newest one.
 
 A lesson can hold several activities. Numbered buttons then appear to switch between them.
 
+## A place for Bayanihan Crew
+
+1. Add the scenario to the lesson's content file: its art name, words, and one job per worker.
+2. Draw it in `src/features/bayanihan/scenes/`, as `brigada.tsx` does: a still backdrop, the parts that move (`ambient`, each with a box and a kind of movement), and for each job its mess, its clean look, its tag spot, and where the worker stands. Scenes are drawn on a 1600 by 900 sheet.
+3. Add one line to `scenes/index.ts`.
+
+Use the paper colors in `paper.ts` and the shared pieces in `storybook/art/pieces.tsx`, so the new scene matches. Put the paper filter (`CUT`) only on groups that never move.
+
 ## A game like Build Our Bayan
 
 - Words live in the lesson's content file (`lesson-02/bayan.ts`): every line, question, hint, and person's name. Scenes hold no lesson text.
