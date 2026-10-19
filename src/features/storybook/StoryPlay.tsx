@@ -7,11 +7,11 @@ import { useFullscreen } from "@/hooks/useFullscreen";
 import { PaperDefs } from "./art/PaperDefs";
 import { storyFonts } from "./fonts";
 import { StartScreen } from "./StartScreen";
-import type { StoryGame } from "./StoryGame";
+import type { StoryActivity } from "./StoryActivity";
 import { cornerButton } from "./styles";
 import { TeacherPanel, type Jump } from "./TeacherPanel";
 import { useHydrated, useSaved, useSaveStatus } from "./useGame";
-import { useSfx, type SfxFiles, type SfxName } from "./useSfx";
+import { useSfx, type SfxName } from "./useSfx";
 import { useConfetti } from "./useStory";
 
 /** What a game's board gets from the shell. */
@@ -20,15 +20,14 @@ export interface Stage {
   fire: () => void;
 }
 
-interface StoryPlayProps<TProgress, TAction> {
-  game: StoryGame<TProgress, TAction>;
-  sounds: SfxFiles;
+interface StoryPlayProps<TContent, TProgress, TAction> {
+  activity: StoryActivity<TContent, TProgress, TAction>;
+  lessonId: string;
   cover: { title: string; tagline: string; play: string; art: ReactNode; cast: ReactNode };
   jumpTitle: string;
   jumps: readonly Jump[];
   replayLabel: string;
   onReplay: () => void;
-  onReset: () => void;
   children: (stage: Stage) => ReactNode;
 }
 
@@ -36,13 +35,14 @@ interface StoryPlayProps<TProgress, TAction> {
  * Everything both Lesson 03 games share: the board they are pinned to, the cover with its Play button,
  * the teacher panel, full screen, sound, and confetti. Play fills the screen, so the TV shows only the game.
  */
-export function StoryPlay<TProgress, TAction>(props: StoryPlayProps<TProgress, TAction>) {
-  const { game, sounds, cover, children } = props;
+export function StoryPlay<TContent, TProgress, TAction>(props: StoryPlayProps<TContent, TProgress, TAction>) {
+  const { activity, cover, children } = props;
+  const game = activity.gameFor(props.lessonId);
   const fullscreen = useFullscreen();
   const ready = useHydrated(game);
   const sound = useSaved(game, (state) => state.sound);
   const status = useSaveStatus(game);
-  const play = useSfx(sounds, sound);
+  const play = useSfx(activity.sounds, sound);
   const { canvas, fire } = useConfetti();
   const [started, setStarted] = useState(false);
   const label = fullscreen.active ? "Leave full screen" : "Full screen";
@@ -85,7 +85,7 @@ export function StoryPlay<TProgress, TAction>(props: StoryPlayProps<TProgress, T
             jumps={props.jumps}
             replayLabel={props.replayLabel}
             onReplay={props.onReplay}
-            onReset={props.onReset}
+            onReset={() => activity.reset()}
             status={status}
           />
           <button

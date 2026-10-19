@@ -31,7 +31,7 @@ A lesson can hold several activities. Numbered buttons then appear to switch bet
 2. Draw it in `src/features/bayanihan/scenes/`, as `brigada.tsx` does: a still backdrop, the parts that move (`ambient`, each with a box and a kind of movement), and for each job its mess, its clean look, its tag spot, and where the worker stands. Scenes are drawn on a 1600 by 900 sheet.
 3. Add one line to `scenes/index.ts`.
 
-Use the paper colors in `paper.ts` and the shared pieces in `storybook/art/pieces.tsx`, so the new scene matches. Put the paper filter (`CUT`) only on groups that never move.
+Use the paper colors in `src/features/storybook/art/paper.ts` and the shared pieces in `storybook/art/pieces.tsx`, so the new scene matches. Put the paper filter (`CUT`) only on groups that never move.
 
 ## A game like Build Our Bayan
 

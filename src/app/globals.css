@@ -90,7 +90,6 @@
   --container-story-card: 44rem;
   /* Room for the teacher panel and full screen buttons in the top corner. */
   --spacing-corner: 7.5rem;
-  --spacing-corner-top: 3.75rem;
   /* Lesson 03's sizes inside a scene, from the scene's width. */
   --spacing-scene-token: max(2.75rem, 8cqw);
   --spacing-tag: 15cqw;

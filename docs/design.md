@@ -22,7 +22,7 @@ Every color, size, shadow, and timing lives in `src/app/globals.css`. Never writ
 | Reflection text | Sentient (`font-serif`) |
 | Lesson 03's games | Baloo 2 (`font-story`) and Atkinson Hyperlegible (`font-story-body`), loaded from Google Fonts and set only on the games' frame |
 
-Font files and licenses are in `src/styles/fonts/`.
+The self-hosted font files and licenses are in `src/styles/fonts/`.
 
 ## Rules
 
@@ -71,13 +71,13 @@ A pixel town on Phaser and grid-engine, with every word drawn by React over the 
 Two games that look like colored paper pinned to a classroom board. Bayanihan Crew opens the lesson, and Gift Quest closes it.
 
 - Each game opens on a cover with its name, its cast, and one Play button. Play fills the screen, so the TV shows only the game, and the tap lets the browser play sound.
-
 - People are round paper tokens: an Open Peeps face from DiceBear, a ring in their gift's color, and the gift's badge. The bust is used as drawn; a body under it looked stitched on. The same gift color and icon mark the person's card, badge, and job tag, so a pupil matches picture to picture.
-- Faces show what a person is doing: smile at rest, calm when picked, driven at work, concerned for a moment after a wrong match, smileBig when done, lovingGrin1 when the scene is finished, explaining when Marco talks. Each face is drawn once per hair and expression and kept.
+- Faces show what a person is doing, so the class reads the moment without words. The few expressions allowed are listed in `cast.ts`, and each face is drawn once per hair and expression and kept.
 - Each game's rules are a pure step function (`rules.ts`) that returns the new progress and what happened. `StoryActivity` makes the saved game from them, and `StoryPlay` is the shell both games share. Only progress is saved; what is clean or placed is worked out from it. Each start of a scene or gift counts up an `attempt`, so a replay starts fresh too.
+- `StoryBoard` is the frame both boards share: who is talking and the progress on top, the game below. Every word, the teacher panel's too, comes from the lesson's content file.
 - One scene engine draws every Bayanihan Crew place from data: the content names the jobs and the words, and the scene's art module holds the backdrop, the parts that move, each job's mess and clean layers, where its tag is pinned, and where the worker stands to work.
-- The places are alive: clouds drift, the flag waves, trees sway, birds fly past, lamps swing, and candles flicker. The crew bobs while waiting, and each worker says a short line and moves their tool while working.
-- Progress always shows: a star for each place finished and a pip for each job given in Bayanihan Crew, and a badge that lights for each gift found in Gift Quest.
+- The places are alive, so a still screen never looks frozen: small things in each scene move on a loop, the crew bobs while waiting, and each worker says a short line and moves their tool while working.
+- Progress always shows, so the class knows how far they have come.
 - Every right answer is rewarded at once: a sparkle burst, a sound, and a line from Marco. Letters pop into their boxes, the word bounces green, and the piece flies into the picture.
 - Paper shadows are an SVG filter, so only still layers use it. Each mess, clean, and moving layer is its own small picture whose wrapper fades or moves, and tokens move by transform only, so nothing that moves is redrawn.
 - Drag uses the pointer's position, so a tag under the finger is the one that counts. Tapping a friend and then a job does the same, and is the keyboard path. On a phone, job targets show their gift icons at least 44px wide, with the full job name available to screen readers. In Gifts for Our Barangay, typing letters and Backspace work too.
