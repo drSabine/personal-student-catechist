@@ -14,7 +14,6 @@ export interface Jump {
 interface TeacherPanelProps {
   sound: boolean;
   onSound: (on: boolean) => void;
-  /** "Go to scenario" or "Go to gift". */
   jumpTitle: string;
   jumps: readonly Jump[];
   replayLabel: string;
